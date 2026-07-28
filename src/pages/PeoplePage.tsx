@@ -36,6 +36,14 @@ export function PeoplePage({ people }: PeoplePageProps) {
       }),
     [filter, normalizedQuery, people],
   )
+  const trimmedQuery = query.trim()
+  const resultLabel = normalizedQuery
+    ? visiblePeople.length === 0
+      ? `Keine Treffer für „${trimmedQuery}“`
+      : `${visiblePeople.length} Treffer für „${trimmedQuery}“`
+    : filter === 'Alle'
+      ? 'Alle Personen'
+      : filter
 
   return (
     <main className="page page-people">
@@ -76,14 +84,14 @@ export function PeoplePage({ people }: PeoplePageProps) {
 
       <div
         aria-label="Nach Lernstatus filtern"
-        className="scrollbar-none -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1"
+        className="people-filters mt-4 flex flex-wrap gap-2"
       >
         {filters.map((item) => {
           const selected = filter === item
           return (
             <button
               aria-pressed={selected}
-              className={`min-h-11 shrink-0 rounded-full border px-4 text-xs font-bold transition ${
+              className={`min-h-10 rounded-full border px-3.5 text-[13px] font-semibold transition ${
                 selected
                   ? 'border-blue-500 bg-blue-600 text-white shadow-sm'
                   : 'border-slate-200 bg-white text-slate-600'
@@ -100,10 +108,17 @@ export function PeoplePage({ people }: PeoplePageProps) {
 
       <section className="surface mt-4 rounded-[24px] px-4">
         <div className="flex items-center justify-between border-b border-slate-100 py-4">
-          <p className="text-sm font-extrabold text-[#102142]">
-            {filter === 'Alle' ? 'Alle Personen' : filter}
+          <p
+            aria-live="polite"
+            className="min-w-0 pr-3 text-sm font-extrabold text-[#102142]"
+          >
+            {resultLabel}
           </p>
-          <span className="text-xs font-bold text-slate-500">{visiblePeople.length}</span>
+          {!normalizedQuery ? (
+            <span className="text-xs font-bold text-slate-500">
+              {visiblePeople.length}
+            </span>
+          ) : null}
         </div>
         {visiblePeople.length > 0 ? (
           <div className="divide-y divide-slate-100">
@@ -116,7 +131,9 @@ export function PeoplePage({ people }: PeoplePageProps) {
             <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-slate-100 text-slate-400">
               <UsersRound aria-hidden="true" size={24} />
             </span>
-            <p className="mt-3 text-sm font-extrabold text-[#102142]">Niemand gefunden</p>
+            <p className="mt-3 text-sm font-extrabold text-[#102142]">
+              Keine Treffer
+            </p>
             <p className="mt-1 text-xs leading-5 text-slate-500">
               Passe die Suche oder den Lernstatus-Filter an.
             </p>

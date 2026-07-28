@@ -18,7 +18,7 @@ export function PersonRow({
   showStatus = true,
 }: PersonRowProps) {
   return (
-    <div className="flex items-center gap-3 py-3">
+    <div className="person-row flex cursor-default items-center gap-3 py-3">
       <Avatar
         className="h-14 w-14 ring-2 ring-white"
         label={`Porträt von ${employee.firstName} ${employee.lastName}`}

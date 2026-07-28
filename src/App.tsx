@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { BottomNav, type NavScreen } from './components/BottomNav'
+import { ConfirmDialog } from './components/ConfirmDialog'
 import { EMPLOYEES } from './data/employees'
 import {
   applyAnswer,
@@ -88,6 +89,7 @@ function App() {
   const [screen, setScreen] = useState<Screen>('home')
   const [activeRound, setActiveRound] = useState<ActiveRound | null>(null)
   const [lastResult, setLastResult] = useState<RoundResultView | null>(null)
+  const [exitDialogOpen, setExitDialogOpen] = useState(false)
 
   useEffect(() => {
     saveState(appState)
@@ -97,6 +99,15 @@ function App() {
     const portraitAtlas = new Image()
     portraitAtlas.src = '/employee-portraits.jpg'
   }, [])
+
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+    document
+      .querySelector<HTMLElement>('.screen-transition > main')
+      ?.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [screen])
 
   const people = useMemo(
     () =>
@@ -234,6 +245,8 @@ function App() {
   const finishRound = () => {
     if (!activeRound) return
 
+    setExitDialogOpen(false)
+
     const answered = activeRound.correct + activeRound.wrong
     if (answered === 0) {
       setActiveRound(null)
@@ -352,9 +365,7 @@ function App() {
       return
     }
 
-    if (window.confirm('Runde jetzt beenden und die bisherigen Antworten auswerten?')) {
-      finishRound()
-    }
+    setExitDialogOpen(true)
   }
 
   const startDifficultRound = () => {
@@ -362,13 +373,8 @@ function App() {
     startRound({ ...config, roundSize: 5, adaptive: true }, ids)
   }
 
-  const repeatWrong = () => {
-    if (!lastResult) return
-    const ids = lastResult.wrongPeople.map((person) => person.employee.id)
-    startRound({ ...config, roundSize: 5, adaptive: true }, ids)
-  }
-
   const navigate = (destination: NavScreen) => {
+    setExitDialogOpen(false)
     setScreen(destination)
   }
 
@@ -396,7 +402,6 @@ function App() {
         <ResultsPage
           onBackHome={() => setScreen('home')}
           onNewRound={() => setScreen('settings')}
-          onRepeatWrong={repeatWrong}
           result={lastResult}
         />
       )
@@ -468,6 +473,13 @@ function App() {
         {renderScreen()}
       </div>
       {screen !== 'quiz' ? <BottomNav active={navActive} onNavigate={navigate} /> : null}
+      {exitDialogOpen && activeRound ? (
+        <ConfirmDialog
+          answeredCount={activeRound.correct + activeRound.wrong}
+          onCancel={() => setExitDialogOpen(false)}
+          onConfirm={finishRound}
+        />
+      ) : null}
     </div>
   )
 }

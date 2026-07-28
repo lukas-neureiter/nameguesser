@@ -18,7 +18,7 @@ export function StatusBadge({ status, compact = false }: StatusBadgeProps) {
   return (
     <span
       className={`inline-flex shrink-0 items-center gap-1.5 rounded-full font-semibold ${statusStyles[status]} ${
-        compact ? 'px-2.5 py-1 text-[11px]' : 'px-3 py-1.5 text-xs'
+        compact ? 'px-2.5 py-1 text-xs' : 'px-3 py-1.5 text-[13px]'
       }`}
     >
       <Circle aria-hidden="true" className="fill-current" size={7} strokeWidth={0} />

@@ -122,6 +122,37 @@ export function HomePage({
         Lernrunde starten
       </button>
 
+      <div className="home-shortcuts mt-4 grid grid-cols-2 gap-3">
+        <button
+          className="surface flex min-h-24 items-center gap-3 rounded-[20px] p-4 text-left disabled:opacity-55"
+          disabled={!hasHistory}
+          onClick={onQuickStart}
+          type="button"
+        >
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-blue-50 text-blue-600">
+            <History aria-hidden="true" size={20} />
+          </span>
+          <span className="min-w-0 flex-1 text-xs leading-5 font-bold text-[#102142]">
+            Letzte Einstellung
+          </span>
+          <ArrowRight aria-hidden="true" className="shrink-0 text-slate-400" size={17} />
+        </button>
+        <button
+          className="surface flex min-h-24 items-center gap-3 rounded-[20px] p-4 text-left disabled:opacity-55"
+          disabled={difficultPeople.length === 0}
+          onClick={onRepeatDifficult}
+          type="button"
+        >
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-blue-50 text-blue-600">
+            <Target aria-hidden="true" size={20} />
+          </span>
+          <span className="min-w-0 flex-1 text-xs leading-5 font-bold text-[#102142]">
+            Nur schwierige
+          </span>
+          <ArrowRight aria-hidden="true" className="shrink-0 text-slate-400" size={17} />
+        </button>
+      </div>
+
       <section className="surface home-repeat mt-5 rounded-[22px] p-5">
         <div className="mb-1 flex items-center justify-between gap-3">
           <div>
@@ -156,37 +187,6 @@ export function HomePage({
           </div>
         )}
       </section>
-
-      <div className="home-shortcuts mt-4 grid grid-cols-2 gap-3">
-        <button
-          className="surface flex min-h-24 items-center gap-3 rounded-[20px] p-4 text-left disabled:opacity-55"
-          disabled={!hasHistory}
-          onClick={onQuickStart}
-          type="button"
-        >
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-blue-50 text-blue-600">
-            <History aria-hidden="true" size={20} />
-          </span>
-          <span className="min-w-0 flex-1 text-xs leading-5 font-bold text-[#102142]">
-            Letzte Einstellung
-          </span>
-          <ArrowRight aria-hidden="true" className="shrink-0 text-slate-400" size={17} />
-        </button>
-        <button
-          className="surface flex min-h-24 items-center gap-3 rounded-[20px] p-4 text-left disabled:opacity-55"
-          disabled={difficultPeople.length === 0}
-          onClick={onRepeatDifficult}
-          type="button"
-        >
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-blue-50 text-blue-600">
-            <Target aria-hidden="true" size={20} />
-          </span>
-          <span className="min-w-0 flex-1 text-xs leading-5 font-bold text-[#102142]">
-            Nur schwierige
-          </span>
-          <ArrowRight aria-hidden="true" className="shrink-0 text-slate-400" size={17} />
-        </button>
-      </div>
     </main>
   )
 }

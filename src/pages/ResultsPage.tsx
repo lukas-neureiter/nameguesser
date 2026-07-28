@@ -4,7 +4,6 @@ import {
   Check,
   CheckCircle2,
   Play,
-  RefreshCw,
   Sparkles,
   Timer,
   X,
@@ -25,7 +24,6 @@ type ResultsPageProps = {
   result: RoundResultView
   onBackHome: () => void
   onNewRound: () => void
-  onRepeatWrong: () => void
 }
 
 function formatSeconds(milliseconds: number) {
@@ -37,7 +35,6 @@ export function ResultsPage({
   result,
   onBackHome,
   onNewRound,
-  onRepeatWrong,
 }: ResultsPageProps) {
   const accuracy = result.total > 0 ? Math.round((result.correct / result.total) * 100) : 0
   const ringStyle = {
@@ -153,23 +150,13 @@ export function ResultsPage({
       ) : null}
 
       <div className="results-actions mt-4 grid gap-3">
-        {result.wrongPeople.length > 0 ? (
-          <button
-            className="primary-button flex min-h-14 w-full items-center justify-center gap-2 rounded-[18px] px-5 text-base font-extrabold"
-            onClick={onRepeatWrong}
-            type="button"
-          >
-            <RefreshCw aria-hidden="true" size={21} />
-            Fehler wiederholen
-          </button>
-        ) : null}
         <button
-          className="flex min-h-14 w-full items-center justify-center gap-2 rounded-[18px] border-2 border-blue-500 bg-white px-5 text-base font-extrabold text-blue-600"
+          className="primary-button flex min-h-14 w-full items-center justify-center gap-2 rounded-[18px] px-5 text-base font-extrabold"
           onClick={onNewRound}
           type="button"
         >
           <Play aria-hidden="true" fill="currentColor" size={19} />
-          Neue Runde
+          Neue Runde konfigurieren
         </button>
       </div>
     </main>
