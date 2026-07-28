@@ -83,13 +83,16 @@ export function StatsPage({
   history,
 }: StatsPageProps) {
   return (
-    <main className="page">
+    <main className="page page-stats">
       <PageHeader
         subtitle="Dein Fortschritt wird nach jeder Antwort automatisch aktualisiert."
         title="Statistik"
       />
 
-      <section aria-label="Gesamtstatistik" className="surface rounded-[24px] p-5">
+      <section
+        aria-label="Gesamtstatistik"
+        className="surface stats-summary rounded-[22px] p-5"
+      >
         <div className="grid grid-cols-4 gap-1">
           <StatTile
             icon={<UsersRound aria-hidden="true" size={20} />}
@@ -115,7 +118,7 @@ export function StatsPage({
         </div>
       </section>
 
-      <section className="surface mt-4 rounded-[24px] p-5">
+      <section className="surface stats-status mt-4 rounded-[22px] p-5">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-extrabold text-[#102142]">Lernstatus</h2>
@@ -145,7 +148,7 @@ export function StatsPage({
         </div>
       </section>
 
-      <section className="surface mt-4 rounded-[24px] p-5">
+      <section className="surface stats-difficult mt-4 rounded-[22px] p-5">
         <div>
           <h2 className="text-lg font-extrabold text-[#102142]">Schwierigste Personen</h2>
           <p className="mt-0.5 text-xs text-slate-500">Nach deiner bisherigen Trefferquote</p>
@@ -163,7 +166,7 @@ export function StatsPage({
         )}
       </section>
 
-      <section className="surface mt-4 rounded-[24px] p-5">
+      <section className="surface stats-overall mt-4 rounded-[22px] p-5">
         <h2 className="text-lg font-extrabold text-[#102142]">Insgesamt</h2>
         <div className="mt-4 grid grid-cols-2 gap-3">
           <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
@@ -188,7 +191,7 @@ export function StatsPage({
       </section>
 
       {history.length > 0 ? (
-        <section className="surface mt-4 rounded-[24px] p-5">
+        <section className="surface stats-history mt-4 rounded-[22px] p-5">
           <h2 className="text-lg font-extrabold text-[#102142]">Letzte Runden</h2>
           <div className="mt-3 divide-y divide-slate-100">
             {history.slice(0, 5).map((round) => {

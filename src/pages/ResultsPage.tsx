@@ -45,7 +45,7 @@ export function ResultsPage({
   } as CSSProperties
 
   return (
-    <main className="page">
+    <main className="page page-results">
       <header className="mb-6 grid grid-cols-[44px_1fr_44px] items-start">
         <button
           aria-label="Zur Startseite"
@@ -65,7 +65,7 @@ export function ResultsPage({
         </div>
       </header>
 
-      <section className="surface rounded-[24px] p-5">
+      <section className="surface results-score rounded-[22px] p-5">
         <div className="flex items-center justify-center gap-7">
           <div className="score-ring" style={ringStyle}>
             <span className="text-center">
@@ -115,7 +115,7 @@ export function ResultsPage({
         </div>
       </section>
 
-      <section className="surface mt-4 rounded-[24px] p-5">
+      <section className="surface results-practice mt-4 rounded-[22px] p-5">
         <div className="mb-1 flex items-center justify-between gap-3">
           <div>
             <h2 className="text-lg font-extrabold text-[#102142]">Noch üben</h2>
@@ -141,7 +141,7 @@ export function ResultsPage({
       </section>
 
       {result.improvedPeople.length > 0 ? (
-        <section className="mt-4 flex items-center gap-3 rounded-[20px] border border-emerald-100 bg-emerald-50 p-4">
+        <section className="results-improved mt-4 flex items-center gap-3 rounded-[20px] border border-emerald-100 bg-emerald-50 p-4">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-emerald-600">
             <Sparkles aria-hidden="true" size={21} />
           </span>
@@ -152,7 +152,7 @@ export function ResultsPage({
         </section>
       ) : null}
 
-      <div className="mt-4 grid gap-3">
+      <div className="results-actions mt-4 grid gap-3">
         {result.wrongPeople.length > 0 ? (
           <button
             className="primary-button flex min-h-14 w-full items-center justify-center gap-2 rounded-[18px] px-5 text-base font-extrabold"

@@ -10,6 +10,8 @@ Multiple-Choice-Runden lernen können.
 - Runden mit 5, 10, 20 oder unbegrenzt vielen Fragen
 - adaptive Auswahl mit schneller Wiederholung schwieriger Personen
 - sofortiges Antwortfeedback und Rundenauswertung
+- responsive Desktopansicht und kompakte mobile Bedienung
+- dezente, barrierearme Übergangs- und Feedbackanimationen
 - Statistik und filterbare Personenübersicht
 - versionierte, fehlertolerante Speicherung im Browser
 - zwölf vollständig fiktive Demo-Personen

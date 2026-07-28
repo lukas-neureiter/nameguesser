@@ -5,7 +5,6 @@ import {
   Image as ImageIcon,
   Play,
   Type,
-  UserRound,
 } from 'lucide-react'
 import type { Direction, NameMode, RoundConfig, RoundSize } from '../types'
 
@@ -56,15 +55,15 @@ function DirectionChoice({
   return (
     <button
       aria-pressed={selected}
-      className={`relative min-h-40 rounded-[22px] border bg-white p-4 text-left transition ${
+      className={`selection-card relative min-h-40 rounded-[20px] border bg-white p-4 text-left ${
         selected
-          ? 'border-blue-500 bg-blue-50/70 shadow-[0_8px_20px_rgba(15,109,245,0.12)]'
+          ? 'is-selected border-blue-500 bg-blue-50/60'
           : 'border-slate-200 hover:border-slate-300'
       }`}
       onClick={onSelect}
       type="button"
     >
-      <span className="absolute top-4 right-4">
+      <span className="selection-check absolute top-4 right-4">
         <ChoiceMark selected={selected} />
       </span>
       <span className="mt-8 flex items-center gap-1 text-slate-500">
@@ -73,7 +72,7 @@ function DirectionChoice({
             selected ? 'bg-blue-100 text-blue-600' : 'bg-slate-100'
           }`}
         >
-          {photoFirst ? <UserRound size={21} /> : <Type size={21} />}
+          {photoFirst ? <ImageIcon size={21} /> : <Type size={21} />}
         </span>
         <ArrowRight size={18} />
         <span
@@ -102,7 +101,7 @@ export function SettingsPage({
   }
 
   return (
-    <main className="page">
+    <main className="page page-settings">
       <button
         aria-label="Zurück zur Startseite"
         className="mb-7 grid h-11 w-11 place-items-center rounded-2xl border border-slate-200 bg-white text-[#102142] shadow-sm"
@@ -116,7 +115,7 @@ export function SettingsPage({
         <p className="mb-1 text-xs font-bold tracking-[0.16em] text-blue-600 uppercase">
           Neue Runde
         </p>
-        <h1 className="text-[34px] leading-tight font-extrabold tracking-[-0.035em] text-[#102142]">
+        <h1 className="text-[32px] leading-tight font-semibold tracking-[-0.02em] text-[#17233b]">
           Lernrunde
         </h1>
         <p className="mt-2 text-[15px] leading-6 text-slate-600">
@@ -124,8 +123,8 @@ export function SettingsPage({
         </p>
       </header>
 
-      <div className="space-y-7">
-        <fieldset>
+      <div className="settings-form-grid">
+        <fieldset className="settings-name">
           <legend className="mb-3 text-[15px] font-extrabold text-[#102142]">
             Was lernen?
           </legend>
@@ -135,8 +134,10 @@ export function SettingsPage({
               return (
                 <button
                   aria-pressed={selected}
-                  className={`relative min-h-14 border-r border-slate-200 px-2 text-sm font-semibold last:border-r-0 ${
-                    selected ? 'bg-blue-50 text-blue-700' : 'bg-white text-slate-700'
+                  className={`segmented-option relative min-h-14 border-r border-slate-200 px-2 text-sm font-medium last:border-r-0 ${
+                    selected
+                      ? 'is-selected bg-blue-50 text-blue-700'
+                      : 'bg-white text-slate-700'
                   }`}
                   key={mode.value}
                   onClick={() => update('nameMode', mode.value)}
@@ -159,7 +160,7 @@ export function SettingsPage({
           </div>
         </fieldset>
 
-        <fieldset>
+        <fieldset className="settings-direction">
           <legend className="mb-3 text-[15px] font-extrabold text-[#102142]">
             Abfragemodus
           </legend>
@@ -177,21 +178,21 @@ export function SettingsPage({
           </div>
         </fieldset>
 
-        <fieldset>
+        <fieldset className="settings-count">
           <legend className="mb-3 text-[15px] font-extrabold text-[#102142]">
             Anzahl Fragen
           </legend>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="question-count-grid">
             {roundSizes.map((size) => {
               const selected = config.roundSize === size.value
               return (
                 <button
                   aria-pressed={selected}
-                  className={`relative min-h-14 rounded-2xl border px-1 font-bold transition ${
+                  className={`count-option relative min-h-14 rounded-2xl border px-2 text-xs font-semibold whitespace-nowrap ${
                     selected
-                      ? 'border-blue-300 bg-blue-50 text-blue-700 shadow-sm'
+                      ? 'is-selected border-blue-400 bg-blue-50 text-blue-700'
                       : 'border-slate-200 bg-white text-slate-700'
-                  } ${size.value === 'unlimited' ? 'text-[10px]' : 'text-sm'}`}
+                  }`}
                   key={String(size.value)}
                   onClick={() => update('roundSize', size.value)}
                   type="button"
@@ -211,11 +212,11 @@ export function SettingsPage({
           </div>
         </fieldset>
 
-        <div>
+        <div className="settings-focus">
           <p className="mb-3 text-[15px] font-extrabold text-[#102142]">Fokus</p>
           <button
             aria-pressed={config.adaptive}
-            className="surface flex min-h-16 w-full items-center justify-between gap-4 rounded-2xl px-4 text-left"
+            className="surface selection-row flex min-h-16 w-full items-center justify-between gap-4 rounded-2xl px-4 text-left"
             onClick={() => update('adaptive', !config.adaptive)}
             type="button"
           >
@@ -229,12 +230,12 @@ export function SettingsPage({
             </span>
             <span
               aria-hidden="true"
-              className={`relative h-8 w-14 shrink-0 rounded-full transition ${
+              className={`switch-track relative h-8 w-14 shrink-0 rounded-full ${
                 config.adaptive ? 'bg-blue-600' : 'bg-slate-300'
               }`}
             >
               <span
-                className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-sm transition ${
+                className={`switch-thumb absolute top-1 h-6 w-6 rounded-full bg-white shadow-sm ${
                   config.adaptive ? 'left-7' : 'left-1'
                 }`}
               />
@@ -243,7 +244,7 @@ export function SettingsPage({
         </div>
 
         <button
-          className="primary-button flex min-h-16 w-full items-center justify-center gap-3 rounded-[20px] px-6 text-lg font-extrabold"
+          className="primary-button settings-start flex min-h-16 w-full items-center justify-center gap-3 rounded-2xl px-6 text-base font-semibold"
           onClick={onStart}
           type="button"
         >

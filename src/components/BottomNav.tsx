@@ -29,7 +29,8 @@ const items: NavItem[] = [
 export function BottomNav({ active, onNavigate }: BottomNavProps) {
   return (
     <nav aria-label="Hauptnavigation" className="bottom-nav">
-      <div className="grid grid-cols-4">
+      <p className="desktop-brand">Namen lernen</p>
+      <div className="nav-items grid grid-cols-4">
         {items.map((item) => {
           const Icon = item.icon
           const isActive = active === item.id
@@ -37,8 +38,10 @@ export function BottomNav({ active, onNavigate }: BottomNavProps) {
           return (
             <button
               aria-current={isActive ? 'page' : undefined}
-              className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold transition ${
-                isActive ? 'text-blue-600' : 'text-slate-500 hover:text-slate-700'
+              className={`nav-item flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold ${
+                isActive
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
               }`}
               key={item.id}
               onClick={() => onNavigate(item.id)}
@@ -46,9 +49,8 @@ export function BottomNav({ active, onNavigate }: BottomNavProps) {
             >
               <Icon
                 aria-hidden="true"
-                fill={isActive && item.id === 'home' ? 'currentColor' : 'none'}
                 size={23}
-                strokeWidth={isActive ? 2.4 : 2}
+                strokeWidth={isActive ? 2.25 : 1.9}
               />
               {item.label}
             </button>

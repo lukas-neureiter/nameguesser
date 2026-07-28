@@ -38,7 +38,7 @@ export function PeoplePage({ people }: PeoplePageProps) {
   )
 
   return (
-    <main className="page">
+    <main className="page page-people">
       <PageHeader
         subtitle="Suche Namen oder filtere nach dem aktuellen Lernstatus."
         title="Personen"

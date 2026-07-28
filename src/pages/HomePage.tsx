@@ -68,14 +68,18 @@ export function HomePage({
   onRepeatDifficult,
 }: HomePageProps) {
   return (
-    <main className="page">
-      <PageHeader
-        eyebrow="Dein Team"
-        subtitle="Lerne Gesichter und Namen in kurzen, konzentrierten Runden."
-        title="Namen lernen"
-      />
+    <main className="page page-home">
+      <div className="home-header">
+        <PageHeader
+          subtitle="Gesichter und Namen in kurzen, konzentrierten Runden lernen."
+          title="Namen lernen"
+        />
+      </div>
 
-      <section aria-label="Dein Lernstand" className="surface rounded-[24px] p-5">
+      <section
+        aria-label="Dein Lernstand"
+        className="surface home-summary rounded-[22px] p-5"
+      >
         <div className="grid grid-cols-3">
           <Metric
             icon={<UsersRound aria-hidden="true" size={23} />}
@@ -108,7 +112,7 @@ export function HomePage({
       </section>
 
       <button
-        className="primary-button mt-5 flex min-h-16 w-full items-center justify-center gap-3 rounded-[20px] px-6 text-lg font-extrabold"
+        className="primary-button home-primary mt-5 flex min-h-16 w-full items-center justify-center gap-3 rounded-2xl px-6 text-base font-semibold"
         onClick={onOpenSettings}
         type="button"
       >
@@ -118,7 +122,7 @@ export function HomePage({
         Lernrunde starten
       </button>
 
-      <section className="surface mt-5 rounded-[24px] p-5">
+      <section className="surface home-repeat mt-5 rounded-[22px] p-5">
         <div className="mb-1 flex items-center justify-between gap-3">
           <div>
             <p className="text-lg font-extrabold text-[#102142]">Heute wiederholen</p>
@@ -153,7 +157,7 @@ export function HomePage({
         )}
       </section>
 
-      <div className="mt-4 grid grid-cols-2 gap-3">
+      <div className="home-shortcuts mt-4 grid grid-cols-2 gap-3">
         <button
           className="surface flex min-h-24 items-center gap-3 rounded-[20px] p-4 text-left disabled:opacity-55"
           disabled={!hasHistory}

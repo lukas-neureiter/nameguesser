@@ -459,8 +459,10 @@ function App() {
     screen === 'results' || screen === 'quiz' ? 'settings' : screen
 
   return (
-    <div className="app-shell">
-      {renderScreen()}
+    <div className={`app-shell ${screen === 'quiz' ? 'app-shell--focus' : ''}`}>
+      <div className="screen-transition" key={screen}>
+        {renderScreen()}
+      </div>
       {screen !== 'quiz' ? <BottomNav active={navActive} onNavigate={navigate} /> : null}
     </div>
   )
