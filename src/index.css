@@ -1,0 +1,230 @@
+@import "tailwindcss";
+
+:root {
+  color: #102142;
+  background: #edf3fb;
+  font-family:
+    Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --navy: #102142;
+  --blue: #0f6df5;
+  --blue-strong: #075ee6;
+  --blue-soft: #eaf2ff;
+  --surface: #ffffff;
+  --surface-soft: #f5f8fd;
+  --line: #e3eaf3;
+  --muted: #62708a;
+  --success: #159956;
+  --success-soft: #e9f8ef;
+  --danger: #df3d3d;
+  --danger-soft: #fff0ef;
+  --warning: #e96c17;
+  --warning-soft: #fff2e7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: #edf3fb;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid rgb(15 109 245 / 28%);
+  outline-offset: 2px;
+}
+
+::selection {
+  color: white;
+  background: var(--blue);
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+.app-shell {
+  width: min(100%, 540px);
+  min-height: 100dvh;
+  margin-inline: auto;
+  background:
+    radial-gradient(circle at 100% 0%, rgb(214 230 255 / 62%), transparent 26rem),
+    linear-gradient(180deg, #f8fbff 0%, #f4f7fc 100%);
+  box-shadow: 0 0 48px rgb(37 66 107 / 10%);
+}
+
+.page {
+  min-height: 100dvh;
+  padding: max(24px, env(safe-area-inset-top)) 20px
+    calc(108px + env(safe-area-inset-bottom));
+}
+
+.page-quiz {
+  min-height: 100dvh;
+  padding: max(18px, env(safe-area-inset-top)) 18px
+    calc(24px + env(safe-area-inset-bottom));
+}
+
+.surface {
+  border: 1px solid rgb(222 231 242 / 80%);
+  background: rgb(255 255 255 / 92%);
+  box-shadow:
+    0 14px 35px rgb(43 66 99 / 7%),
+    0 2px 8px rgb(43 66 99 / 4%);
+  backdrop-filter: blur(12px);
+}
+
+.primary-button {
+  color: #fff;
+  background: linear-gradient(135deg, #1681ff 0%, #075ee6 100%);
+  box-shadow: 0 12px 28px rgb(15 109 245 / 24%);
+}
+
+.primary-button:hover {
+  filter: brightness(1.03);
+}
+
+.primary-button:active {
+  transform: translateY(1px);
+}
+
+.progress-track {
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  background: #e6ecf5;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #1681ff 0%, #075ee6 100%);
+  transition: width 260ms ease;
+}
+
+.portrait-sprite {
+  display: block;
+  flex: 0 0 auto;
+  overflow: hidden;
+  background-image: url("/employee-portraits.jpg");
+  background-repeat: no-repeat;
+  background-size: 400% auto;
+  background-color: #e5e9ee;
+}
+
+.score-ring {
+  display: grid;
+  width: 148px;
+  height: 148px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at center, #fff 61%, transparent 62%),
+    conic-gradient(var(--blue) var(--score-angle), #e8eef7 0);
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.bottom-nav {
+  position: fixed;
+  z-index: 40;
+  bottom: 0;
+  left: 50%;
+  width: min(100%, 540px);
+  transform: translateX(-50%);
+  border-top: 1px solid rgb(222 231 242 / 90%);
+  background: rgb(255 255 255 / 94%);
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  box-shadow: 0 -10px 30px rgb(43 66 99 / 5%);
+  backdrop-filter: blur(18px);
+}
+
+.answer-correct {
+  border-color: #33aa6d !important;
+  background: var(--success-soft) !important;
+  box-shadow: 0 0 0 2px rgb(21 153 86 / 10%);
+}
+
+.answer-wrong {
+  border-color: #ef7771 !important;
+  background: var(--danger-soft) !important;
+  box-shadow: 0 0 0 2px rgb(223 61 61 / 8%);
+}
+
+.answer-selected {
+  border-color: var(--blue) !important;
+  background: var(--blue-soft) !important;
+}
+
+@media (min-width: 680px) {
+  body {
+    padding-block: 20px;
+  }
+
+  .app-shell {
+    min-height: calc(100dvh - 40px);
+    overflow: hidden;
+    border: 1px solid rgb(217 226 239 / 85%);
+    border-radius: 32px;
+  }
+
+  .page,
+  .page-quiz {
+    min-height: calc(100dvh - 40px);
+  }
+
+  .bottom-nav {
+    bottom: 20px;
+    border-radius: 0 0 32px 32px;
+  }
+}
+
+@media (max-width: 360px) {
+  .page {
+    padding-inline: 16px;
+  }
+
+  .page-quiz {
+    padding-inline: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
