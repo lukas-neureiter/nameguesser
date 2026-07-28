@@ -104,14 +104,14 @@ export function SettingsPage({
     <main className="page page-settings">
       <button
         aria-label="Zurück zur Startseite"
-        className="mb-7 grid h-11 w-11 place-items-center rounded-2xl border border-slate-200 bg-white text-[#102142] shadow-sm"
+        className="settings-back mb-7 grid h-11 w-11 place-items-center rounded-2xl border border-slate-200 bg-white text-[#102142] shadow-sm"
         onClick={onBack}
         type="button"
       >
         <ArrowLeft size={23} />
       </button>
 
-      <header className="mb-7">
+      <header className="settings-header mb-7">
         <p className="mb-1 text-xs font-bold tracking-[0.16em] text-blue-600 uppercase">
           Neue Runde
         </p>

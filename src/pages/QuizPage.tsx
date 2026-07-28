@@ -5,6 +5,7 @@ import {
   ChevronRight,
   Image as ImageIcon,
   Infinity as InfinityIcon,
+  Type,
   X,
   XCircle,
 } from 'lucide-react'
@@ -32,9 +33,16 @@ function displayName(employee: Employee, config: RoundConfig) {
 }
 
 function modeLabel(config: RoundConfig) {
-  if (config.nameMode === 'first') return 'Vorname'
-  if (config.nameMode === 'last') return 'Nachname'
-  return 'Vor- und Nachname'
+  const name =
+    config.nameMode === 'first'
+      ? 'Vorname'
+      : config.nameMode === 'last'
+        ? 'Nachname'
+        : 'Vor- und Nachname'
+
+  return config.direction === 'photo-to-name'
+    ? `Foto → ${name}`
+    : `${name} → Foto`
 }
 
 export function QuizPage({
@@ -118,8 +126,12 @@ export function QuizPage({
 
       <div className="quiz-mode mt-5 flex justify-center">
         <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3.5 py-2 text-xs font-bold text-blue-700">
-          <ImageIcon aria-hidden="true" size={15} />
-          Modus: {modeLabel(config)}
+          {config.direction === 'photo-to-name' ? (
+            <ImageIcon aria-hidden="true" size={15} />
+          ) : (
+            <Type aria-hidden="true" size={15} />
+          )}
+          {modeLabel(config)}
         </span>
       </div>
 
@@ -262,7 +274,7 @@ export function QuizPage({
           </button>
         </section>
       ) : (
-        <p className="mt-5 text-center text-xs font-medium text-slate-500">
+        <p className="quiz-hint mt-5 text-center text-xs font-medium text-slate-500">
           Tippe auf die passende Antwort.
         </p>
       )}

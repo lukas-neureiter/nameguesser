@@ -459,7 +459,11 @@ function App() {
     screen === 'results' || screen === 'quiz' ? 'settings' : screen
 
   return (
-    <div className={`app-shell ${screen === 'quiz' ? 'app-shell--focus' : ''}`}>
+    <div
+      className={`app-shell app-shell--${screen} ${
+        screen === 'quiz' ? 'app-shell--focus' : ''
+      }`}
+    >
       <div className="screen-transition" key={screen}>
         {renderScreen()}
       </div>
