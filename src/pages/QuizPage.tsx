@@ -53,7 +53,9 @@ export function QuizPage({
   const answered = selectedId !== null
   const isCorrect = selectedId === target.id
   const total = config.roundSize === 'unlimited' ? null : config.roundSize
-  const progress = total ? Math.min(100, ((questionNumber - 1) / total) * 100) : 0
+  const progress = total
+    ? Math.min(100, ((questionNumber - (answered ? 0 : 1)) / total) * 100)
+    : 0
 
   const answerClass = (employee: Employee) => {
     if (!answered) return ''

@@ -56,7 +56,7 @@ function DirectionChoice({
   return (
     <button
       aria-pressed={selected}
-      className={`relative min-h-44 rounded-[22px] border bg-white p-5 text-left transition ${
+      className={`relative min-h-40 rounded-[22px] border bg-white p-4 text-left transition ${
         selected
           ? 'border-blue-500 bg-blue-50/70 shadow-[0_8px_20px_rgba(15,109,245,0.12)]'
           : 'border-slate-200 hover:border-slate-300'
@@ -67,24 +67,24 @@ function DirectionChoice({
       <span className="absolute top-4 right-4">
         <ChoiceMark selected={selected} />
       </span>
-      <span className="mt-8 flex items-center gap-2 text-slate-500">
+      <span className="mt-8 flex items-center gap-1 text-slate-500">
         <span
-          className={`grid h-12 w-12 place-items-center rounded-full ${
+          className={`grid h-10 w-10 place-items-center rounded-full ${
             selected ? 'bg-blue-100 text-blue-600' : 'bg-slate-100'
           }`}
         >
-          {photoFirst ? <UserRound size={25} /> : <Type size={25} />}
+          {photoFirst ? <UserRound size={21} /> : <Type size={21} />}
         </span>
-        <ArrowRight size={22} />
+        <ArrowRight size={18} />
         <span
-          className={`grid h-12 w-12 place-items-center rounded-full ${
+          className={`grid h-10 w-10 place-items-center rounded-full ${
             selected ? 'bg-blue-100 text-blue-600' : 'bg-slate-100'
           }`}
         >
-          {photoFirst ? <Type size={25} /> : <ImageIcon size={25} />}
+          {photoFirst ? <Type size={21} /> : <ImageIcon size={21} />}
         </span>
       </span>
-      <span className="mt-5 block text-base font-extrabold text-[#102142]">
+      <span className="mt-4 block text-sm font-extrabold text-[#102142]">
         {photoFirst ? 'Foto → Name' : 'Name → Foto'}
       </span>
     </button>
@@ -187,11 +187,11 @@ export function SettingsPage({
               return (
                 <button
                   aria-pressed={selected}
-                  className={`relative min-h-14 rounded-2xl border px-1 text-sm font-bold transition ${
+                  className={`relative min-h-14 rounded-2xl border px-1 font-bold transition ${
                     selected
                       ? 'border-blue-300 bg-blue-50 text-blue-700 shadow-sm'
                       : 'border-slate-200 bg-white text-slate-700'
-                  }`}
+                  } ${size.value === 'unlimited' ? 'text-[10px]' : 'text-sm'}`}
                   key={String(size.value)}
                   onClick={() => update('roundSize', size.value)}
                   type="button"
