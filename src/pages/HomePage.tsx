@@ -23,6 +23,7 @@ type HomePageProps = {
   knownPeople: number
   masteredPeople: number
   progressPercent: number
+  learningWindowCount: number
   difficultPeople: PersonSummary[]
   hasHistory: boolean
   onOpenSettings: () => void
@@ -61,6 +62,7 @@ export function HomePage({
   knownPeople,
   masteredPeople,
   progressPercent,
+  learningWindowCount,
   difficultPeople,
   hasHistory,
   onOpenSettings,
@@ -108,6 +110,9 @@ export function HomePage({
           <div className="progress-track">
             <div className="progress-fill" style={{ width: `${progressPercent}%` }} />
           </div>
+          <p className="mt-2 text-center text-[11px] font-medium text-slate-500">
+            {learningWindowCount} von {totalPeople} Personen aktuell im Lernfenster
+          </p>
         </div>
       </section>
 

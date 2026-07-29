@@ -69,6 +69,7 @@ export interface PersistedState {
   version: 2
   progressById: Record<string, PersonProgress>
   disabledPersonIds: string[]
+  learningWindowIds: string[]
   roundHistory: SessionSummary[]
   lastConfig: RoundConfig
 }

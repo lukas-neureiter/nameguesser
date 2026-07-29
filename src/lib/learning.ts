@@ -52,6 +52,10 @@ const ADAPTIVE_STATUS_WEIGHT: Record<LearningStatus, number> = {
   Gemeistert: 0.5,
 }
 
+export const INITIAL_LEARNING_WINDOW_SIZE = 12
+export const LEARNING_WINDOW_BATCH_SIZE = 3
+export const LEARNING_WINDOW_MASTERY_RATIO = 0.6
+
 export interface PersonStatistics {
   employee: Employee
   progress: PersonProgress
@@ -164,6 +168,72 @@ export function getLearningStatus(progress: PersonProgress): LearningStatus {
   }
 
   return 'Gemeistert'
+}
+
+/**
+ * Keeps an already introduced learning window stable and only grows it.
+ * The first twelve active people are available immediately. Afterwards,
+ * three more are introduced whenever at least 60% of the current active
+ * window are mastered.
+ */
+export function expandLearningWindow(
+  activeEmployees: readonly Employee[],
+  currentWindowIds: readonly string[],
+  progressById: Readonly<Record<string, PersonProgress | undefined>>,
+): string[] {
+  const uniqueActiveEmployees = uniqueEmployees(activeEmployees)
+  const activeIds = new Set(uniqueActiveEmployees.map((employee) => employee.id))
+  const windowIds = new Set(currentWindowIds)
+
+  const getActiveWindow = () =>
+    uniqueActiveEmployees.filter((employee) => windowIds.has(employee.id))
+
+  const initialTarget = Math.min(
+    INITIAL_LEARNING_WINDOW_SIZE,
+    uniqueActiveEmployees.length,
+  )
+
+  for (const employee of uniqueActiveEmployees) {
+    if (getActiveWindow().length >= initialTarget) {
+      break
+    }
+
+    windowIds.add(employee.id)
+  }
+
+  while (getActiveWindow().length < uniqueActiveEmployees.length) {
+    const activeWindow = getActiveWindow()
+    const masteredCount = activeWindow.filter((employee) => {
+      const progress = progressById[employee.id]
+      return progress ? getLearningStatus(progress) === 'Gemeistert' : false
+    }).length
+    const requiredMastered = Math.ceil(
+      activeWindow.length * LEARNING_WINDOW_MASTERY_RATIO,
+    )
+
+    if (masteredCount < requiredMastered) {
+      break
+    }
+
+    const additions = uniqueActiveEmployees
+      .filter((employee) => !windowIds.has(employee.id))
+      .slice(0, LEARNING_WINDOW_BATCH_SIZE)
+
+    if (additions.length === 0) {
+      break
+    }
+
+    for (const employee of additions) {
+      windowIds.add(employee.id)
+    }
+  }
+
+  return [
+    ...currentWindowIds.filter((id, index) => currentWindowIds.indexOf(id) === index),
+    ...[...windowIds].filter(
+      (id) => activeIds.has(id) && !currentWindowIds.includes(id),
+    ),
+  ]
 }
 
 export function getStatusMeta(status: LearningStatus): LearningStatusMeta {

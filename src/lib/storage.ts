@@ -10,7 +10,11 @@ import type {
   SessionPersonResult,
   SessionSummary,
 } from '../types'
-import { createEmptyProgress } from './learning'
+import {
+  createEmptyProgress,
+  expandLearningWindow,
+  getTotalAnswers,
+} from './learning'
 
 export const STORAGE_VERSION = 2 as const
 export const STORAGE_KEY = 'nameguesser:learning-state'
@@ -204,6 +208,34 @@ function sanitizeDisabledPersonIds(value: unknown): string[] {
     : disabledIds.slice(0, -1)
 }
 
+function sanitizeLearningWindowIds(
+  value: unknown,
+  progressById: Record<string, PersonProgress>,
+  disabledPersonIds: readonly string[],
+): string[] {
+  const employeeIds = new Set(EMPLOYEES.map((employee) => employee.id))
+  const storedIds = Array.isArray(value)
+    ? [
+        ...new Set(
+          value.filter(
+            (id): id is string =>
+              typeof id === 'string' && employeeIds.has(id),
+          ),
+        ),
+      ]
+    : []
+  const introducedIds = EMPLOYEES.filter(
+    (employee) => getTotalAnswers(progressById[employee.id]) > 0,
+  ).map((employee) => employee.id)
+  const currentIds = [...new Set([...storedIds, ...introducedIds])]
+  const disabledIds = new Set(disabledPersonIds)
+  const activeEmployees = EMPLOYEES.filter(
+    (employee) => !disabledIds.has(employee.id),
+  )
+
+  return expandLearningWindow(activeEmployees, currentIds, progressById)
+}
+
 function sanitizePersonResult(value: unknown): SessionPersonResult | null {
   if (!isRecord(value) || typeof value.employeeId !== 'string') {
     return null
@@ -291,12 +323,20 @@ function stateFromUnknown(value: unknown): PersistedState | null {
     return null
   }
 
+  const progressById = sanitizeProgressById(
+    value.progressById ?? value.progress,
+  )
+  const disabledPersonIds = sanitizeDisabledPersonIds(value.disabledPersonIds)
+
   return {
     version: STORAGE_VERSION,
-    progressById: sanitizeProgressById(
-      value.progressById ?? value.progress,
+    progressById,
+    disabledPersonIds,
+    learningWindowIds: sanitizeLearningWindowIds(
+      value.learningWindowIds,
+      progressById,
+      disabledPersonIds,
     ),
-    disabledPersonIds: sanitizeDisabledPersonIds(value.disabledPersonIds),
     roundHistory: sanitizeRoundHistory(
       value.roundHistory ?? value.sessions,
     ),
@@ -305,15 +345,18 @@ function stateFromUnknown(value: unknown): PersistedState | null {
 }
 
 export function createDefaultState(): PersistedState {
+  const progressById = Object.fromEntries(
+    EMPLOYEES.map((employee) => [
+      employee.id,
+      createEmptyProgress(employee.id),
+    ]),
+  )
+
   return {
     version: STORAGE_VERSION,
-    progressById: Object.fromEntries(
-      EMPLOYEES.map((employee) => [
-        employee.id,
-        createEmptyProgress(employee.id),
-      ]),
-    ),
+    progressById,
     disabledPersonIds: [],
+    learningWindowIds: expandLearningWindow(EMPLOYEES, [], progressById),
     roundHistory: [],
     lastConfig: { ...DEFAULT_ROUND_CONFIG },
   }

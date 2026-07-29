@@ -10,6 +10,7 @@ type FilterValue = 'Alle' | 'Aktiv' | 'Deaktiviert' | LearningStatus
 type PeoplePageProps = {
   people: PersonSummary[]
   disabledPersonIds: ReadonlySet<string>
+  learningWindowIds: ReadonlySet<string>
   onToggleActive: (employeeId: string) => void
 }
 
@@ -27,12 +28,18 @@ const filters: FilterValue[] = [
 export function PeoplePage({
   people,
   disabledPersonIds,
+  learningWindowIds,
   onToggleActive,
 }: PeoplePageProps) {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<FilterValue>('Alle')
   const normalizedQuery = query.trim().toLocaleLowerCase('de')
   const activeCount = people.length - disabledPersonIds.size
+  const learningWindowCount = people.filter(
+    (person) =>
+      !disabledPersonIds.has(person.employee.id) &&
+      learningWindowIds.has(person.employee.id),
+  ).length
 
   const visiblePeople = useMemo(
     () =>
@@ -72,7 +79,7 @@ export function PeoplePage({
             {activeCount} von {people.length} aktiv
           </p>
           <p className="mt-0.5 text-xs text-slate-500">
-            Deaktivierte Personen behalten ihren Lernstand.
+            {learningWindowCount} davon aktuell im Lernfenster.
           </p>
         </div>
         <UsersRound aria-hidden="true" className="shrink-0 text-blue-600" size={22} />
@@ -150,6 +157,9 @@ export function PeoplePage({
           <div className="divide-y divide-slate-100">
             {visiblePeople.map((person) => {
               const isActive = !disabledPersonIds.has(person.employee.id)
+              const isInLearningWindow = learningWindowIds.has(
+                person.employee.id,
+              )
               const isLastActive = isActive && activeCount === 1
               const fullName = `${person.employee.firstName} ${person.employee.lastName}`
 
@@ -161,7 +171,16 @@ export function PeoplePage({
                   key={person.employee.id}
                 >
                   <div className={`min-w-0 flex-1 ${isActive ? '' : 'opacity-55'}`}>
-                    <PersonRow {...person} />
+                    <PersonRow
+                      {...person}
+                      detail={
+                        !isActive
+                          ? 'Deaktiviert · Lernstand bleibt gespeichert'
+                          : !isInLearningWindow
+                            ? 'Wartet auf Freischaltung'
+                            : undefined
+                      }
+                    />
                   </div>
                   <button
                     aria-label={`${fullName} ${isActive ? 'deaktivieren' : 'aktivieren'}`}

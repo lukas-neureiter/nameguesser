@@ -6,6 +6,7 @@ import {
   applyAnswer,
   buildOptions,
   createEmptyProgress,
+  expandLearningWindow,
   getAccuracy,
   getAggregateStatistics,
   getHardestEmployees,
@@ -128,6 +129,19 @@ function App() {
     [disabledPersonIds],
   )
 
+  const learningWindowIds = useMemo(
+    () => new Set(appState.learningWindowIds),
+    [appState.learningWindowIds],
+  )
+
+  const learningWindowEmployees = useMemo(
+    () =>
+      activeEmployees.filter((employee) =>
+        learningWindowIds.has(employee.id),
+      ),
+    [activeEmployees, learningWindowIds],
+  )
+
   const aggregate = useMemo(
     () => getAggregateStatistics(activeEmployees, appState.progressById),
     [activeEmployees, appState.progressById],
@@ -135,10 +149,14 @@ function App() {
 
   const difficultPeople = useMemo(
     () =>
-      getHardestEmployees(activeEmployees, appState.progressById, 5).map(
-        ({ employee }) => toPersonSummary(employee, appState.progressById),
+      getHardestEmployees(
+        learningWindowEmployees,
+        appState.progressById,
+        5,
+      ).map(({ employee }) =>
+        toPersonSummary(employee, appState.progressById),
       ),
-    [activeEmployees, appState.progressById],
+    [appState.progressById, learningWindowEmployees],
   )
 
   const averageProgress = Math.round(
@@ -159,11 +177,12 @@ function App() {
     requestedPoolIds: string[] | null = null,
   ) => {
     const validPool = requestedPoolIds
-      ? activeEmployees.filter((employee) =>
+      ? learningWindowEmployees.filter((employee) =>
           requestedPoolIds.includes(employee.id),
         )
-      : [...activeEmployees]
-    const pool = validPool.length > 0 ? validPool : [...activeEmployees]
+      : [...learningWindowEmployees]
+    const pool =
+      validPool.length > 0 ? validPool : [...learningWindowEmployees]
     const target = weightedPickEmployee(
       pool,
       appState.progressById,
@@ -178,7 +197,7 @@ function App() {
     setActiveRound({
       config: roundConfig,
       target,
-      options: buildOptions(target, activeEmployees),
+      options: buildOptions(target, learningWindowEmployees),
       questionNumber: 1,
       correct: 0,
       wrong: 0,
@@ -206,13 +225,23 @@ function App() {
       const previousProgress =
         previous.progressById[targetId] ?? createEmptyProgress(targetId)
       const nextProgress = applyAnswer(previousProgress, isCorrect, responseMs)
+      const nextProgressById = {
+        ...previous.progressById,
+        [targetId]: nextProgress,
+      }
+      const previousDisabledIds = new Set(previous.disabledPersonIds)
+      const previousActiveEmployees = EMPLOYEES.filter(
+        (employee) => !previousDisabledIds.has(employee.id),
+      )
 
       return {
         ...previous,
-        progressById: {
-          ...previous.progressById,
-          [targetId]: nextProgress,
-        },
+        progressById: nextProgressById,
+        learningWindowIds: expandLearningWindow(
+          previousActiveEmployees,
+          previous.learningWindowIds,
+          nextProgressById,
+        ),
       }
     })
 
@@ -329,11 +358,12 @@ function App() {
 
     const nextQuestion = activeRound.questionNumber + 1
     const allPool = activeRound.poolIds
-      ? activeEmployees.filter((employee) =>
+      ? learningWindowEmployees.filter((employee) =>
           activeRound.poolIds?.includes(employee.id),
         )
-      : [...activeEmployees]
-    const pool = allPool.length > 0 ? allPool : [...activeEmployees]
+      : [...learningWindowEmployees]
+    const pool =
+      allPool.length > 0 ? allPool : [...learningWindowEmployees]
     const dueRetry = activeRound.retryQueue.find(
       (item) =>
         item.dueQuestion <= nextQuestion &&
@@ -356,7 +386,7 @@ function App() {
     setActiveRound({
       ...activeRound,
       target,
-      options: buildOptions(target, activeEmployees),
+      options: buildOptions(target, learningWindowEmployees),
       questionNumber: nextQuestion,
       selectedId: null,
       questionStartedAt: Date.now(),
@@ -397,11 +427,22 @@ function App() {
         return previous
       }
 
+      const nextDisabledPersonIds = isDisabled
+        ? previous.disabledPersonIds.filter((id) => id !== employeeId)
+        : [...previous.disabledPersonIds, employeeId]
+      const nextDisabledIds = new Set(nextDisabledPersonIds)
+      const nextActiveEmployees = EMPLOYEES.filter(
+        (employee) => !nextDisabledIds.has(employee.id),
+      )
+
       return {
         ...previous,
-        disabledPersonIds: isDisabled
-          ? previous.disabledPersonIds.filter((id) => id !== employeeId)
-          : [...previous.disabledPersonIds, employeeId],
+        disabledPersonIds: nextDisabledPersonIds,
+        learningWindowIds: expandLearningWindow(
+          nextActiveEmployees,
+          previous.learningWindowIds,
+          previous.progressById,
+        ),
       }
     })
   }
@@ -493,6 +534,7 @@ function App() {
       return (
         <PeoplePage
           disabledPersonIds={disabledPersonIds}
+          learningWindowIds={learningWindowIds}
           onToggleActive={togglePersonActive}
           people={people}
         />
@@ -508,6 +550,7 @@ function App() {
         onOpenSettings={() => setScreen('settings')}
         onQuickStart={() => startRound(appState.lastConfig)}
         onRepeatDifficult={startDifficultRound}
+        learningWindowCount={learningWindowEmployees.length}
         progressPercent={averageProgress}
         totalPeople={aggregate.totalPeople}
       />
