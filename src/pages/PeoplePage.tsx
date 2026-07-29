@@ -5,14 +5,18 @@ import { PersonRow } from '../components/PersonRow'
 import type { LearningStatus } from '../types'
 import type { PersonSummary } from './HomePage'
 
-type FilterValue = 'Alle' | LearningStatus
+type FilterValue = 'Alle' | 'Aktiv' | 'Deaktiviert' | LearningStatus
 
 type PeoplePageProps = {
   people: PersonSummary[]
+  disabledPersonIds: ReadonlySet<string>
+  onToggleActive: (employeeId: string) => void
 }
 
 const filters: FilterValue[] = [
   'Alle',
+  'Aktiv',
+  'Deaktiviert',
   'Neu',
   'Unsicher',
   'In Übung',
@@ -20,10 +24,15 @@ const filters: FilterValue[] = [
   'Gemeistert',
 ]
 
-export function PeoplePage({ people }: PeoplePageProps) {
+export function PeoplePage({
+  people,
+  disabledPersonIds,
+  onToggleActive,
+}: PeoplePageProps) {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<FilterValue>('Alle')
   const normalizedQuery = query.trim().toLocaleLowerCase('de')
+  const activeCount = people.length - disabledPersonIds.size
 
   const visiblePeople = useMemo(
     () =>
@@ -31,10 +40,15 @@ export function PeoplePage({ people }: PeoplePageProps) {
         const name =
           `${person.employee.firstName} ${person.employee.lastName}`.toLocaleLowerCase('de')
         const matchesSearch = !normalizedQuery || name.includes(normalizedQuery)
-        const matchesFilter = filter === 'Alle' || person.status === filter
+        const isDisabled = disabledPersonIds.has(person.employee.id)
+        const matchesFilter =
+          filter === 'Alle' ||
+          (filter === 'Aktiv' && !isDisabled) ||
+          (filter === 'Deaktiviert' && isDisabled) ||
+          person.status === filter
         return matchesSearch && matchesFilter
       }),
-    [filter, normalizedQuery, people],
+    [disabledPersonIds, filter, normalizedQuery, people],
   )
   const trimmedQuery = query.trim()
   const resultLabel = normalizedQuery
@@ -48,9 +62,21 @@ export function PeoplePage({ people }: PeoplePageProps) {
   return (
     <main className="page page-people">
       <PageHeader
-        subtitle="Suche Namen oder filtere nach dem aktuellen Lernstatus."
+        subtitle="Lege fest, welche Personen in deinen Lernrunden vorkommen."
         title="Personen"
       />
+
+      <div className="mb-4 flex items-center justify-between rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3">
+        <div>
+          <p className="text-sm font-extrabold text-[#102142]">
+            {activeCount} von {people.length} aktiv
+          </p>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Deaktivierte Personen behalten ihren Lernstand.
+          </p>
+        </div>
+        <UsersRound aria-hidden="true" className="shrink-0 text-blue-600" size={22} />
+      </div>
 
       <div className="surface relative rounded-2xl">
         <Search
@@ -122,9 +148,50 @@ export function PeoplePage({ people }: PeoplePageProps) {
         </div>
         {visiblePeople.length > 0 ? (
           <div className="divide-y divide-slate-100">
-            {visiblePeople.map((person) => (
-              <PersonRow key={person.employee.id} {...person} />
-            ))}
+            {visiblePeople.map((person) => {
+              const isActive = !disabledPersonIds.has(person.employee.id)
+              const isLastActive = isActive && activeCount === 1
+              const fullName = `${person.employee.firstName} ${person.employee.lastName}`
+
+              return (
+                <div
+                  className={`flex items-center gap-2 ${
+                    isActive ? '' : 'bg-slate-50/70'
+                  }`}
+                  key={person.employee.id}
+                >
+                  <div className={`min-w-0 flex-1 ${isActive ? '' : 'opacity-55'}`}>
+                    <PersonRow {...person} />
+                  </div>
+                  <button
+                    aria-label={`${fullName} ${isActive ? 'deaktivieren' : 'aktivieren'}`}
+                    aria-pressed={isActive}
+                    className="grid min-h-11 min-w-14 shrink-0 place-items-center rounded-xl disabled:cursor-not-allowed disabled:opacity-45"
+                    disabled={isLastActive}
+                    onClick={() => onToggleActive(person.employee.id)}
+                    title={
+                      isLastActive
+                        ? 'Mindestens eine Person muss aktiv bleiben'
+                        : `${fullName} ${isActive ? 'deaktivieren' : 'aktivieren'}`
+                    }
+                    type="button"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={`relative h-7 w-12 rounded-full transition-colors ${
+                        isActive ? 'bg-blue-600' : 'bg-slate-300'
+                      }`}
+                    >
+                      <span
+                        className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-[left] ${
+                          isActive ? 'left-6' : 'left-1'
+                        }`}
+                      />
+                    </span>
+                  </button>
+                </div>
+              )
+            })}
           </div>
         ) : (
           <div className="px-4 py-12 text-center">

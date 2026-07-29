@@ -185,6 +185,25 @@ function sanitizeProgressById(
   )
 }
 
+function sanitizeDisabledPersonIds(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  const employeeIds = new Set(EMPLOYEES.map((employee) => employee.id))
+  const disabledIds = [
+    ...new Set(
+      value.filter(
+        (id): id is string => typeof id === 'string' && employeeIds.has(id),
+      ),
+    ),
+  ]
+
+  return disabledIds.length < EMPLOYEES.length
+    ? disabledIds
+    : disabledIds.slice(0, -1)
+}
+
 function sanitizePersonResult(value: unknown): SessionPersonResult | null {
   if (!isRecord(value) || typeof value.employeeId !== 'string') {
     return null
@@ -277,6 +296,7 @@ function stateFromUnknown(value: unknown): PersistedState | null {
     progressById: sanitizeProgressById(
       value.progressById ?? value.progress,
     ),
+    disabledPersonIds: sanitizeDisabledPersonIds(value.disabledPersonIds),
     roundHistory: sanitizeRoundHistory(
       value.roundHistory ?? value.sessions,
     ),
@@ -293,6 +313,7 @@ export function createDefaultState(): PersistedState {
         createEmptyProgress(employee.id),
       ]),
     ),
+    disabledPersonIds: [],
     roundHistory: [],
     lastConfig: { ...DEFAULT_ROUND_CONFIG },
   }

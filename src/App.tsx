@@ -117,25 +117,36 @@ function App() {
     [appState.progressById],
   )
 
+  const disabledPersonIds = useMemo(
+    () => new Set(appState.disabledPersonIds),
+    [appState.disabledPersonIds],
+  )
+
+  const activeEmployees = useMemo(
+    () =>
+      EMPLOYEES.filter((employee) => !disabledPersonIds.has(employee.id)),
+    [disabledPersonIds],
+  )
+
   const aggregate = useMemo(
-    () => getAggregateStatistics(EMPLOYEES, appState.progressById),
-    [appState.progressById],
+    () => getAggregateStatistics(activeEmployees, appState.progressById),
+    [activeEmployees, appState.progressById],
   )
 
   const difficultPeople = useMemo(
     () =>
-      getHardestEmployees(EMPLOYEES, appState.progressById, 5).map(
+      getHardestEmployees(activeEmployees, appState.progressById, 5).map(
         ({ employee }) => toPersonSummary(employee, appState.progressById),
       ),
-    [appState.progressById],
+    [activeEmployees, appState.progressById],
   )
 
   const averageProgress = Math.round(
-    EMPLOYEES.reduce(
+    activeEmployees.reduce(
       (sum, employee) =>
         sum + (appState.progressById[employee.id]?.masteryScore ?? 0),
       0,
-    ) / EMPLOYEES.length,
+    ) / activeEmployees.length,
   )
 
   const changeConfig = (nextConfig: RoundConfig) => {
@@ -148,9 +159,11 @@ function App() {
     requestedPoolIds: string[] | null = null,
   ) => {
     const validPool = requestedPoolIds
-      ? EMPLOYEES.filter((employee) => requestedPoolIds.includes(employee.id))
-      : [...EMPLOYEES]
-    const pool = validPool.length > 0 ? validPool : [...EMPLOYEES]
+      ? activeEmployees.filter((employee) =>
+          requestedPoolIds.includes(employee.id),
+        )
+      : [...activeEmployees]
+    const pool = validPool.length > 0 ? validPool : [...activeEmployees]
     const target = weightedPickEmployee(
       pool,
       appState.progressById,
@@ -165,7 +178,7 @@ function App() {
     setActiveRound({
       config: roundConfig,
       target,
-      options: buildOptions(target, EMPLOYEES),
+      options: buildOptions(target, activeEmployees),
       questionNumber: 1,
       correct: 0,
       wrong: 0,
@@ -316,9 +329,11 @@ function App() {
 
     const nextQuestion = activeRound.questionNumber + 1
     const allPool = activeRound.poolIds
-      ? EMPLOYEES.filter((employee) => activeRound.poolIds?.includes(employee.id))
-      : [...EMPLOYEES]
-    const pool = allPool.length > 0 ? allPool : [...EMPLOYEES]
+      ? activeEmployees.filter((employee) =>
+          activeRound.poolIds?.includes(employee.id),
+        )
+      : [...activeEmployees]
+    const pool = allPool.length > 0 ? allPool : [...activeEmployees]
     const dueRetry = activeRound.retryQueue.find(
       (item) =>
         item.dueQuestion <= nextQuestion &&
@@ -341,7 +356,7 @@ function App() {
     setActiveRound({
       ...activeRound,
       target,
-      options: buildOptions(target, EMPLOYEES),
+      options: buildOptions(target, activeEmployees),
       questionNumber: nextQuestion,
       selectedId: null,
       questionStartedAt: Date.now(),
@@ -371,6 +386,24 @@ function App() {
   const startDifficultRound = () => {
     const ids = difficultPeople.map((person) => person.employee.id)
     startRound({ ...config, roundSize: 5, adaptive: true }, ids)
+  }
+
+  const togglePersonActive = (employeeId: string) => {
+    setAppState((previous) => {
+      const isDisabled = previous.disabledPersonIds.includes(employeeId)
+      const activeCount = EMPLOYEES.length - previous.disabledPersonIds.length
+
+      if (!isDisabled && activeCount <= 1) {
+        return previous
+      }
+
+      return {
+        ...previous,
+        disabledPersonIds: isDisabled
+          ? previous.disabledPersonIds.filter((id) => id !== employeeId)
+          : [...previous.disabledPersonIds, employeeId],
+      }
+    })
   }
 
   const navigate = (destination: NavScreen) => {
@@ -425,12 +458,27 @@ function App() {
           distribution={aggregate.statusCounts}
           history={[...appState.roundHistory]
             .reverse()
-            .map((round) => ({
-              id: round.id,
-              finishedAt: round.completedAt,
-              correct: round.correctAnswers,
-              total: round.correctAnswers + round.wrongAnswers,
-            }))}
+            .map((round) => {
+              const activeResults = round.personResults.filter(
+                (result) => !disabledPersonIds.has(result.employeeId),
+              )
+              const correct = activeResults.reduce(
+                (sum, result) => sum + result.correctAnswers,
+                0,
+              )
+              const wrong = activeResults.reduce(
+                (sum, result) => sum + result.wrongAnswers,
+                0,
+              )
+
+              return {
+                id: round.id,
+                finishedAt: round.completedAt,
+                correct,
+                total: correct + wrong,
+              }
+            })
+            .filter((round) => round.total > 0)}
           knownPeople={aggregate.learnedPeople}
           masteredPeople={aggregate.masteredPeople}
           overallAccuracy={Math.round(aggregate.accuracy)}
@@ -442,7 +490,13 @@ function App() {
     }
 
     if (screen === 'people') {
-      return <PeoplePage people={people} />
+      return (
+        <PeoplePage
+          disabledPersonIds={disabledPersonIds}
+          onToggleActive={togglePersonActive}
+          people={people}
+        />
+      )
     }
 
     return (
