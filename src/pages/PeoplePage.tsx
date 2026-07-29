@@ -5,7 +5,12 @@ import { PersonRow } from '../components/PersonRow'
 import type { LearningStatus } from '../types'
 import type { PersonSummary } from './HomePage'
 
-type FilterValue = 'Alle' | 'Aktiv' | 'Deaktiviert' | LearningStatus
+type FilterValue =
+  | 'Alle'
+  | 'Aktiv'
+  | 'Wartend'
+  | 'Deaktiviert'
+  | LearningStatus
 
 type PeoplePageProps = {
   people: PersonSummary[]
@@ -17,6 +22,7 @@ type PeoplePageProps = {
 const filters: FilterValue[] = [
   'Alle',
   'Aktiv',
+  'Wartend',
   'Deaktiviert',
   'Neu',
   'Unsicher',
@@ -48,14 +54,24 @@ export function PeoplePage({
           `${person.employee.firstName} ${person.employee.lastName}`.toLocaleLowerCase('de')
         const matchesSearch = !normalizedQuery || name.includes(normalizedQuery)
         const isDisabled = disabledPersonIds.has(person.employee.id)
+        const isInLearningWindow = learningWindowIds.has(person.employee.id)
         const matchesFilter =
           filter === 'Alle' ||
           (filter === 'Aktiv' && !isDisabled) ||
+          (filter === 'Wartend' &&
+            !isDisabled &&
+            !isInLearningWindow) ||
           (filter === 'Deaktiviert' && isDisabled) ||
           person.status === filter
         return matchesSearch && matchesFilter
       }),
-    [disabledPersonIds, filter, normalizedQuery, people],
+    [
+      disabledPersonIds,
+      filter,
+      learningWindowIds,
+      normalizedQuery,
+      people,
+    ],
   )
   const trimmedQuery = query.trim()
   const resultLabel = normalizedQuery

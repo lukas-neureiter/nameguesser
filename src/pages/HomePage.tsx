@@ -24,6 +24,9 @@ type HomePageProps = {
   masteredPeople: number
   progressPercent: number
   learningWindowCount: number
+  learningWindowMasteredCount: number
+  nextWindowUnlockTarget: number
+  waitingPeopleCount: number
   difficultPeople: PersonSummary[]
   hasHistory: boolean
   onOpenSettings: () => void
@@ -63,6 +66,9 @@ export function HomePage({
   masteredPeople,
   progressPercent,
   learningWindowCount,
+  learningWindowMasteredCount,
+  nextWindowUnlockTarget,
+  waitingPeopleCount,
   difficultPeople,
   hasHistory,
   onOpenSettings,
@@ -112,6 +118,11 @@ export function HomePage({
           </div>
           <p className="mt-2 text-center text-[11px] font-medium text-slate-500">
             {learningWindowCount} von {totalPeople} Personen aktuell im Lernfenster
+          </p>
+          <p className="mt-1 text-center text-[11px] font-semibold text-blue-700">
+            {waitingPeopleCount > 0
+              ? `${learningWindowMasteredCount} von ${nextWindowUnlockTarget} gemeistert · dann kommen bis zu 3 neue dazu`
+              : 'Alle aktiven Personen sind freigeschaltet'}
           </p>
         </div>
       </section>

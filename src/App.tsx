@@ -13,6 +13,7 @@ import {
   getLearningStatus,
   getNewlyLearnedIds,
   getTotalAnswers,
+  LEARNING_WINDOW_MASTERY_RATIO,
   weightedPickEmployee,
 } from './lib/learning'
 import { loadState, saveState } from './lib/storage'
@@ -141,6 +142,23 @@ function App() {
       ),
     [activeEmployees, learningWindowIds],
   )
+
+  const learningWindowMasteredCount = learningWindowEmployees.filter(
+    (employee) =>
+      getLearningStatus(
+        appState.progressById[employee.id] ??
+          createEmptyProgress(employee.id),
+      ) === 'Gemeistert',
+  ).length
+  const waitingPeopleCount =
+    activeEmployees.length - learningWindowEmployees.length
+  const nextWindowUnlockTarget =
+    waitingPeopleCount > 0
+      ? Math.ceil(
+          learningWindowEmployees.length *
+            LEARNING_WINDOW_MASTERY_RATIO,
+        )
+      : 0
 
   const aggregate = useMemo(
     () => getAggregateStatistics(activeEmployees, appState.progressById),
@@ -551,8 +569,11 @@ function App() {
         onQuickStart={() => startRound(appState.lastConfig)}
         onRepeatDifficult={startDifficultRound}
         learningWindowCount={learningWindowEmployees.length}
+        learningWindowMasteredCount={learningWindowMasteredCount}
+        nextWindowUnlockTarget={nextWindowUnlockTarget}
         progressPercent={averageProgress}
         totalPeople={aggregate.totalPeople}
+        waitingPeopleCount={waitingPeopleCount}
       />
     )
   }
