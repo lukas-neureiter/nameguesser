@@ -66,7 +66,7 @@ export interface SessionSummary {
 }
 
 export interface PersistedState {
-  version: 1
+  version: 2
   progressById: Record<string, PersonProgress>
   roundHistory: SessionSummary[]
   lastConfig: RoundConfig

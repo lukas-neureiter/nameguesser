@@ -12,7 +12,7 @@ import type {
 } from '../types'
 import { createEmptyProgress } from './learning'
 
-export const STORAGE_VERSION = 1 as const
+export const STORAGE_VERSION = 2 as const
 export const STORAGE_KEY = 'nameguesser:learning-state'
 
 export const DEFAULT_ROUND_CONFIG: RoundConfig = {
@@ -284,201 +284,16 @@ function stateFromUnknown(value: unknown): PersistedState | null {
   }
 }
 
-function hoursAgo(now: number, hours: number): string {
-  return new Date(now - hours * 60 * 60 * 1_000).toISOString()
-}
-
-function createDemoProgress(now: number): Record<string, PersonProgress> {
-  const seed: Array<
-    Omit<PersonProgress, 'employeeId' | 'lastAskedAt'> & {
-      hoursSinceAsked: number | null
-    }
-  > = [
-    {
-      correctAnswers: 4,
-      wrongAnswers: 3,
-      correctStreak: 0,
-      totalResponseMs: 49_700,
-      masteryScore: 28,
-      lastResult: 'wrong',
-      hoursSinceAsked: 2,
-    },
-    {
-      correctAnswers: 3,
-      wrongAnswers: 4,
-      correctStreak: 0,
-      totalResponseMs: 52_500,
-      masteryScore: 21,
-      lastResult: 'wrong',
-      hoursSinceAsked: 5,
-    },
-    {
-      correctAnswers: 2,
-      wrongAnswers: 5,
-      correctStreak: 1,
-      totalResponseMs: 58_100,
-      masteryScore: 14,
-      lastResult: 'correct',
-      hoursSinceAsked: 10,
-    },
-    {
-      correctAnswers: 3,
-      wrongAnswers: 4,
-      correctStreak: 0,
-      totalResponseMs: 51_800,
-      masteryScore: 22,
-      lastResult: 'wrong',
-      hoursSinceAsked: 16,
-    },
-    {
-      correctAnswers: 4,
-      wrongAnswers: 3,
-      correctStreak: 1,
-      totalResponseMs: 45_500,
-      masteryScore: 25,
-      lastResult: 'correct',
-      hoursSinceAsked: 22,
-    },
-    {
-      correctAnswers: 6,
-      wrongAnswers: 2,
-      correctStreak: 3,
-      totalResponseMs: 46_400,
-      masteryScore: 60,
-      lastResult: 'correct',
-      hoursSinceAsked: 30,
-    },
-    {
-      correctAnswers: 8,
-      wrongAnswers: 2,
-      correctStreak: 4,
-      totalResponseMs: 57_000,
-      masteryScore: 78,
-      lastResult: 'correct',
-      hoursSinceAsked: 38,
-    },
-    {
-      correctAnswers: 9,
-      wrongAnswers: 1,
-      correctStreak: 6,
-      totalResponseMs: 51_000,
-      masteryScore: 88,
-      lastResult: 'correct',
-      hoursSinceAsked: 52,
-    },
-    {
-      correctAnswers: 7,
-      wrongAnswers: 1,
-      correctStreak: 4,
-      totalResponseMs: 43_200,
-      masteryScore: 84,
-      lastResult: 'correct',
-      hoursSinceAsked: 70,
-    },
-    {
-      correctAnswers: 10,
-      wrongAnswers: 1,
-      correctStreak: 7,
-      totalResponseMs: 53_900,
-      masteryScore: 91,
-      lastResult: 'correct',
-      hoursSinceAsked: 96,
-    },
-    {
-      correctAnswers: 5,
-      wrongAnswers: 1,
-      correctStreak: 3,
-      totalResponseMs: 36_000,
-      masteryScore: 58,
-      lastResult: 'correct',
-      hoursSinceAsked: 120,
-    },
-    {
-      correctAnswers: 0,
-      wrongAnswers: 0,
-      correctStreak: 0,
-      totalResponseMs: 0,
-      masteryScore: 0,
-      lastResult: null,
-      hoursSinceAsked: null,
-    },
-  ]
-
-  return Object.fromEntries(
-    EMPLOYEES.map((employee, index) => {
-      const item = seed[index]
-
-      return [
-        employee.id,
-        {
-          employeeId: employee.id,
-          correctAnswers: item.correctAnswers,
-          wrongAnswers: item.wrongAnswers,
-          correctStreak: item.correctStreak,
-          lastAskedAt:
-            item.hoursSinceAsked === null
-              ? null
-              : hoursAgo(now, item.hoursSinceAsked),
-          totalResponseMs: item.totalResponseMs,
-          masteryScore: item.masteryScore,
-          lastResult: item.lastResult,
-        },
-      ]
-    }),
-  )
-}
-
-function createDemoHistory(now: number): SessionSummary[] {
-  const completedAt = new Date(now - 2 * 60 * 60 * 1_000)
-  const startedAt = new Date(completedAt.getTime() - 64_000)
-
-  return [
-    {
-      id: 'demo-round-001',
-      startedAt: startedAt.toISOString(),
-      completedAt: completedAt.toISOString(),
-      config: { ...DEFAULT_ROUND_CONFIG },
-      correctAnswers: 8,
-      wrongAnswers: 2,
-      totalResponseMs: 64_000,
-      personResults: [
-        {
-          employeeId: EMPLOYEES[0].id,
-          correctAnswers: 0,
-          wrongAnswers: 1,
-          totalResponseMs: 8_200,
-        },
-        {
-          employeeId: EMPLOYEES[1].id,
-          correctAnswers: 0,
-          wrongAnswers: 1,
-          totalResponseMs: 9_100,
-        },
-        {
-          employeeId: EMPLOYEES[7].id,
-          correctAnswers: 4,
-          wrongAnswers: 0,
-          totalResponseMs: 21_500,
-        },
-        {
-          employeeId: EMPLOYEES[9].id,
-          correctAnswers: 4,
-          wrongAnswers: 0,
-          totalResponseMs: 25_200,
-        },
-      ],
-      newlyLearnedIds: [EMPLOYEES[7].id],
-    },
-  ]
-}
-
 export function createDefaultState(): PersistedState {
-  const now = Date.now()
-
   return {
     version: STORAGE_VERSION,
-    progressById: createDemoProgress(now),
-    roundHistory: createDemoHistory(now),
+    progressById: Object.fromEntries(
+      EMPLOYEES.map((employee) => [
+        employee.id,
+        createEmptyProgress(employee.id),
+      ]),
+    ),
+    roundHistory: [],
     lastConfig: { ...DEFAULT_ROUND_CONFIG },
   }
 }
@@ -497,8 +312,8 @@ function getBrowserStorage(): Storage | null {
 
 /**
  * Loads and validates persisted data. Missing, corrupt, or unsupported future
- * data falls back safely to a fresh demo state. Version 0/unversioned shapes
- * are migrated to the current schema.
+ * data falls back safely to a fresh state. Version 0/unversioned shapes are
+ * migrated to the current schema.
  */
 export function loadState(
   storage: Storage | null = getBrowserStorage(),
