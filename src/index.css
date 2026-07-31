@@ -234,7 +234,7 @@ input:focus-visible {
 }
 
 .page-header {
-  padding-right: 56px;
+  padding-right: 118px;
 }
 
 .profile-trigger {
@@ -242,23 +242,60 @@ input:focus-visible {
   z-index: 60;
   top: max(18px, env(safe-area-inset-top));
   right: max(20px, calc((100vw - 540px) / 2 + 20px));
-  display: grid;
-  width: 44px;
-  height: 44px;
-  place-items: center;
-  border: 1px solid #dbe7fb;
+  display: flex;
+  min-width: 104px;
+  height: 48px;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 9px 5px 5px;
+  border: 1px solid #d5e1f1;
   border-radius: 999px;
-  color: #1268e8;
-  background: #edf4ff;
-  box-shadow: 0 3px 12px rgb(23 35 59 / 10%);
+  color: #253650;
+  background: rgb(255 255 255 / 94%);
+  box-shadow:
+    0 5px 18px rgb(23 35 59 / 11%),
+    inset 0 1px 0 rgb(255 255 255 / 85%);
+  backdrop-filter: blur(12px);
   font-size: 13px;
-  font-weight: 750;
-  letter-spacing: 0.02em;
+  font-weight: 700;
 }
 
-.profile-trigger:hover {
-  border-color: #b9cff5;
-  background: #e2edff;
+.profile-trigger-avatar {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(145deg, #2b7cf0, #0c57c7);
+  box-shadow: 0 3px 9px rgb(18 104 232 / 26%);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+}
+
+.profile-trigger-label {
+  line-height: 1;
+}
+
+.profile-trigger-chevron {
+  flex: 0 0 auto;
+  color: #75859b;
+  transition: transform 180ms ease;
+}
+
+.profile-trigger:hover,
+.profile-trigger[aria-expanded="true"] {
+  border-color: #a9c6ef;
+  color: #102142;
+  background: #fff;
+  box-shadow:
+    0 8px 22px rgb(23 35 59 / 14%),
+    0 0 0 3px rgb(18 104 232 / 8%);
+}
+
+.profile-trigger[aria-expanded="true"] .profile-trigger-chevron {
+  transform: rotate(180deg);
 }
 
 .profile-backdrop {
@@ -274,10 +311,14 @@ input:focus-visible {
   position: fixed;
   z-index: 65;
   right: 8px;
-  bottom: max(8px, env(safe-area-inset-bottom));
+  bottom: calc(
+    max(8px, env(safe-area-inset-bottom)) +
+      var(--profile-viewport-bottom, 0px)
+  );
   width: calc(100vw - 16px);
   max-height: calc(
-    100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+    var(--profile-viewport-height, 100dvh) - 24px -
+      env(safe-area-inset-top) - env(safe-area-inset-bottom)
   );
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -454,6 +495,7 @@ input:focus-visible {
   background: #fff;
   font-size: 14px;
   font-weight: 500;
+  scroll-margin-block: 90px;
 }
 
 .profile-primary-action,
@@ -1332,8 +1374,18 @@ input:focus-visible {
   height: 42px;
   place-items: center;
   border-radius: 12px;
+  color: #1268e8;
+  background: #edf4ff;
+}
+
+.dialog-icon--warning {
   color: #b45309;
   background: #fff7ed;
+}
+
+.dialog-icon--danger {
+  color: #dc2626;
+  background: #fff1f1;
 }
 
 .dialog-card h2 {
@@ -1349,6 +1401,17 @@ input:focus-visible {
   color: var(--muted);
   font-size: 14px;
   line-height: 21px;
+}
+
+.dialog-card .dialog-error {
+  margin-top: 14px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #b91c1c;
+  background: #fff1f2;
+  font-size: 12px;
+  line-height: 18px;
 }
 
 .dialog-actions {
@@ -1373,9 +1436,28 @@ input:focus-visible {
 }
 
 .dialog-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   border: 1px solid var(--blue);
   color: #ffffff;
   background: var(--blue);
+}
+
+.dialog-primary--warning {
+  border-color: #d97706;
+  background: #d97706;
+}
+
+.dialog-primary--danger {
+  border-color: #dc2626;
+  background: #dc2626;
+}
+
+.dialog-actions button:disabled {
+  cursor: wait;
+  opacity: 0.6;
 }
 
 @keyframes screen-enter {
@@ -2105,6 +2187,14 @@ input:focus-visible {
   .person-image-button {
     padding-inline: 12px;
   }
+
+  .dialog-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profile-form {
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
 }
 
 @media (max-width: 899px) and (max-height: 860px) {
@@ -2362,6 +2452,18 @@ input:focus-visible {
 @media (max-width: 360px) {
   .page {
     padding-inline: 16px;
+  }
+
+  .page-header {
+    padding-right: 72px;
+  }
+
+  .profile-trigger {
+    min-width: 0;
+  }
+
+  .profile-trigger-label {
+    display: none;
   }
 
   .page-quiz {
