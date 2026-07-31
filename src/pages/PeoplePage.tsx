@@ -19,6 +19,7 @@ import {
   X,
 } from 'lucide-react'
 import { Avatar } from '../components/Avatar'
+import { ActionConfirmDialog } from '../components/ConfirmDialog'
 import { ImageCropper } from '../components/ImageCropper'
 import { PageHeader } from '../components/PageHeader'
 import { PersonRow } from '../components/PersonRow'
@@ -32,6 +33,12 @@ export type NewPersonInput = {
 }
 
 type FilterValue = 'Alle' | LearningStatus
+
+type PendingPersonAction = {
+  kind: 'reset' | 'delete'
+  personId: string
+  fullName: string
+}
 
 type PeoplePageProps = {
   people: PersonSummary[]
@@ -88,6 +95,8 @@ export function PeoplePage({
   const [actionKey, setActionKey] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [openPersonMenuId, setOpenPersonMenuId] = useState<string | null>(null)
+  const [pendingPersonAction, setPendingPersonAction] =
+    useState<PendingPersonAction | null>(null)
   const [personMenuPlacement, setPersonMenuPlacement] = useState<
     'above' | 'below'
   >('below')
@@ -188,37 +197,50 @@ export function PeoplePage({
     }
   }
 
-  const runAction = async (key: string, action: () => Promise<void>) => {
-    if (actionKey) return
+  const runAction = async (
+    key: string,
+    action: () => Promise<void>,
+  ): Promise<boolean> => {
+    if (actionKey) return false
     setActionKey(key)
     setActionError(null)
 
     try {
       await action()
+      return true
     } catch (error) {
       setActionError(getErrorMessage(error))
+      return false
     } finally {
       setActionKey(null)
     }
   }
 
   const deletePerson = (personId: string, fullName: string) => {
-    if (!window.confirm(`${fullName} wirklich aus deiner Liste löschen?`)) {
-      return
-    }
-
-    void runAction(`delete-${personId}`, () => onDeletePerson(personId))
+    setOpenPersonMenuId(null)
+    setActionError(null)
+    setPendingPersonAction({ kind: 'delete', personId, fullName })
   }
 
   const resetPerson = (personId: string, fullName: string) => {
-    if (!window.confirm(`Lernfortschritt von ${fullName} zurücksetzen?`)) {
-      return
-    }
-
     setOpenPersonMenuId(null)
-    void runAction(`reset-${personId}`, () =>
-      onResetPersonProgress(personId),
+    setActionError(null)
+    setPendingPersonAction({ kind: 'reset', personId, fullName })
+  }
+
+  const confirmPersonAction = async () => {
+    if (!pendingPersonAction) return
+
+    const { kind, personId } = pendingPersonAction
+    const succeeded = await runAction(`${kind}-${personId}`, () =>
+      kind === 'delete'
+        ? onDeletePerson(personId)
+        : onResetPersonProgress(personId),
     )
+
+    if (succeeded) {
+      setPendingPersonAction(null)
+    }
   }
 
   const trimmedQuery = query.trim()
@@ -495,7 +517,7 @@ export function PeoplePage({
         })}
       </div>
 
-      {actionError ? (
+      {actionError && !pendingPersonAction ? (
         <p
           aria-live="polite"
           className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
@@ -678,6 +700,43 @@ export function PeoplePage({
             setImageData(nextImageData)
             setCropFile(null)
           }}
+        />
+      ) : null}
+      {pendingPersonAction ? (
+        <ActionConfirmDialog
+          busy={Boolean(actionKey)}
+          confirmLabel={
+            pendingPersonAction.kind === 'delete'
+              ? 'Person löschen'
+              : 'Fortschritt zurücksetzen'
+          }
+          description={
+            pendingPersonAction.kind === 'delete'
+              ? `${pendingPersonAction.fullName} wird dauerhaft aus deiner persönlichen Liste entfernt. Diese Aktion kann nicht rückgängig gemacht werden.`
+              : `Antworten, Lernstufe und letztes Lerndatum von ${pendingPersonAction.fullName} werden zurückgesetzt. Name und Bild bleiben erhalten.`
+          }
+          error={actionError}
+          icon={
+            pendingPersonAction.kind === 'delete' ? (
+              <Trash2 size={22} />
+            ) : (
+              <RotateCcw size={22} />
+            )
+          }
+          onCancel={() => {
+            if (actionKey) return
+            setPendingPersonAction(null)
+            setActionError(null)
+          }}
+          onConfirm={() => void confirmPersonAction()}
+          title={
+            pendingPersonAction.kind === 'delete'
+              ? 'Person löschen?'
+              : 'Fortschritt zurücksetzen?'
+          }
+          tone={
+            pendingPersonAction.kind === 'delete' ? 'danger' : 'warning'
+          }
         />
       ) : null}
     </main>

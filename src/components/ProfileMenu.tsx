@@ -1,5 +1,6 @@
 import {
   ArrowLeft,
+  ChevronDown,
   ChevronRight,
   LoaderCircle,
   LockKeyhole,
@@ -89,6 +90,41 @@ export function ProfileMenu({
 
     const previousBodyOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    const visualViewport = window.visualViewport
+
+    const syncVisualViewport = () => {
+      const viewportHeight = visualViewport?.height ?? window.innerHeight
+      const viewportBottom = visualViewport
+        ? Math.max(
+            0,
+            window.innerHeight -
+              visualViewport.height -
+              visualViewport.offsetTop,
+          )
+        : 0
+
+      menuRef.current?.style.setProperty(
+        '--profile-viewport-height',
+        `${viewportHeight}px`,
+      )
+      menuRef.current?.style.setProperty(
+        '--profile-viewport-bottom',
+        `${viewportBottom}px`,
+      )
+
+      const activeElement = document.activeElement
+      if (
+        activeElement instanceof HTMLInputElement &&
+        menuRef.current?.contains(activeElement)
+      ) {
+        window.requestAnimationFrame(() => {
+          activeElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          })
+        })
+      }
+    }
 
     const handlePointerDown = (event: PointerEvent) => {
       const target = event.target
@@ -108,10 +144,15 @@ export function ProfileMenu({
 
     document.addEventListener('pointerdown', handlePointerDown)
     document.addEventListener('keydown', handleKeyDown)
+    visualViewport?.addEventListener('resize', syncVisualViewport)
+    visualViewport?.addEventListener('scroll', syncVisualViewport)
+    syncVisualViewport()
     return () => {
       document.body.style.overflow = previousBodyOverflow
       document.removeEventListener('pointerdown', handlePointerDown)
       document.removeEventListener('keydown', handleKeyDown)
+      visualViewport?.removeEventListener('resize', syncVisualViewport)
+      visualViewport?.removeEventListener('scroll', syncVisualViewport)
     }
   }, [open])
 
@@ -209,29 +250,31 @@ export function ProfileMenu({
         <>
           {renderFormHeader(
             'Benutzername ändern',
-            'Dein Anmeldename wird ebenfalls aktualisiert.',
+            'Bestätige zuerst dein aktuelles Passwort.',
           )}
           <form className="profile-form" onSubmit={submitUsername}>
-            <label>
-              Neuer Benutzername
-              <input
-                autoCapitalize="none"
-                autoComplete="username"
-                onChange={(event) => setNextUsername(event.target.value)}
-                required
-                spellCheck={false}
-                value={nextUsername}
-              />
-            </label>
             <label>
               Aktuelles Passwort
               <input
                 autoComplete="current-password"
+                enterKeyHint="next"
                 minLength={6}
                 onChange={(event) => setCurrentPassword(event.target.value)}
                 required
                 type="password"
                 value={currentPassword}
+              />
+            </label>
+            <label>
+              Neuer Benutzername
+              <input
+                autoCapitalize="none"
+                autoComplete="off"
+                enterKeyHint="done"
+                onChange={(event) => setNextUsername(event.target.value)}
+                required
+                spellCheck={false}
+                value={nextUsername}
               />
             </label>
             <button className="profile-primary-action" disabled={busy} type="submit">
@@ -255,6 +298,7 @@ export function ProfileMenu({
               Aktuelles Passwort
               <input
                 autoComplete="current-password"
+                enterKeyHint="next"
                 minLength={6}
                 onChange={(event) => setCurrentPassword(event.target.value)}
                 required
@@ -266,6 +310,7 @@ export function ProfileMenu({
               Neues Passwort
               <input
                 autoComplete="new-password"
+                enterKeyHint="done"
                 minLength={6}
                 onChange={(event) => setNewPassword(event.target.value)}
                 required
@@ -295,6 +340,7 @@ export function ProfileMenu({
               <input
                 autoCapitalize="none"
                 autoComplete="off"
+                enterKeyHint="done"
                 onChange={(event) => setNextTeamId(event.target.value)}
                 required
                 spellCheck={false}
@@ -464,7 +510,15 @@ export function ProfileMenu({
         ref={triggerRef}
         type="button"
       >
-        <span aria-hidden="true">{initials}</span>
+        <span aria-hidden="true" className="profile-trigger-avatar">
+          {initials}
+        </span>
+        <span className="profile-trigger-label">Profil</span>
+        <ChevronDown
+          aria-hidden="true"
+          className="profile-trigger-chevron"
+          size={16}
+        />
       </button>
 
       {open ? (

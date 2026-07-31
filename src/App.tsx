@@ -29,6 +29,7 @@ import { ConfirmDialog } from './components/ConfirmDialog'
 import { ProfileMenu } from './components/ProfileMenu'
 import {
   getAuthErrorMessage,
+  getAuthErrorCode,
   normalizeTeamId,
   normalizeUsername,
   usernameToEmail,
@@ -794,10 +795,6 @@ function AuthenticatedApp({ user }: { user: User }) {
       return []
     }
 
-    if (screen === 'people' && !sharedPeopleLoading) {
-      return sharedPeople
-    }
-
     const snapshot = await getDocs(
       collection(db, 'teams', profile.teamId, 'sharedPeople'),
     )
@@ -822,6 +819,15 @@ function AuthenticatedApp({ user }: { user: User }) {
         ),
       )
     } catch (error) {
+      const errorCode = getAuthErrorCode(error)
+      if (
+        errorCode === 'auth/invalid-credential' ||
+        errorCode === 'auth/user-not-found' ||
+        errorCode === 'auth/wrong-password'
+      ) {
+        throw new Error('Das aktuelle Passwort ist nicht korrekt.')
+      }
+
       throw new Error(getAuthErrorMessage(error))
     }
   }
@@ -849,6 +855,11 @@ function AuthenticatedApp({ user }: { user: User }) {
     try {
       await updateEmail(user, usernameToEmail(normalizedUsername))
     } catch (error) {
+      if (getAuthErrorCode(error) === 'auth/operation-not-allowed') {
+        throw new Error(
+          'Der Benutzername kann aktuell nicht geändert werden, weil Firebase diese Kontoänderung blockiert.',
+        )
+      }
       throw new Error(getAuthErrorMessage(error))
     }
 
@@ -913,25 +924,65 @@ function AuthenticatedApp({ user }: { user: User }) {
       return
     }
 
+    const previousTeamId = profile.teamId
     const teamShares = await loadTeamSharesForMutation()
-    const batch = writeBatch(db)
-    for (const sharedPerson of teamShares) {
-      if (sharedPerson.sharedByUid === user.uid) {
-        batch.delete(
-          doc(
-            db,
-            'teams',
-            profile.teamId,
-            'sharedPeople',
-            sharedPerson.id,
-          ),
+    const ownSharedPeople = teamShares.filter(
+      (sharedPerson) => sharedPerson.sharedByUid === user.uid,
+    )
+
+    await commitInBatches(ownSharedPeople, (batch, sharedPerson) => {
+      batch.delete(
+        doc(
+          db,
+          'teams',
+          previousTeamId,
+          'sharedPeople',
+          sharedPerson.id,
+        ),
+      )
+    })
+
+    try {
+      await updateDoc(doc(db, 'users', user.uid), {
+        teamId: normalizedTeamId,
+      })
+    } catch {
+      try {
+        await commitInBatches(ownSharedPeople, (batch, sharedPerson) => {
+          batch.set(
+            doc(
+              db,
+              'teams',
+              previousTeamId,
+              'sharedPeople',
+              sharedPerson.id,
+            ),
+            {
+              firstName: sharedPerson.firstName,
+              lastName: sharedPerson.lastName,
+              imageData: sharedPerson.imageData,
+              sharedByUid: sharedPerson.sharedByUid,
+              sharedByName: sharedPerson.sharedByName,
+              originalPersonId: sharedPerson.originalPersonId,
+              createdAt: sharedPerson.createdAt
+                ? Timestamp.fromDate(new Date(sharedPerson.createdAt))
+                : serverTimestamp(),
+            },
+          )
+        })
+      } catch {
+        throw new Error(
+          'Das Team konnte nicht geändert und deine bisherigen Freigaben konnten nicht vollständig wiederhergestellt werden.',
         )
       }
+
+      throw new Error(
+        'Das Team konnte nicht geändert werden. Deine bisherigen Freigaben bleiben erhalten.',
+      )
     }
-    batch.update(doc(db, 'users', user.uid), {
-      teamId: normalizedTeamId,
-    })
-    await batch.commit()
+
+    setSharedPeople([])
+    setSharedPeopleLoading(screen === 'people')
   }
 
   const resetAllProgress = async () => {
