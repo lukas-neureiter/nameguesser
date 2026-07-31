@@ -1,0 +1,15 @@
+{
+  "indexes": [],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "people",
+      "fieldPath": "imageData",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "sharedPeople",
+      "fieldPath": "imageData",
+      "indexes": []
+    }
+  ]
+}

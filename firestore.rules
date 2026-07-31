@@ -1,0 +1,182 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwnUser(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isTeamMember(teamId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.teamId == teamId;
+    }
+
+    function hasValidImageData(data) {
+      return data.imageData is string
+        && data.imageData.size() > 0
+        && data.imageData.size() <= 170000;
+    }
+
+    function ownsUnsharedOriginalPerson(originalPersonId) {
+      return exists(
+          /databases/$(database)/documents/users/$(request.auth.uid)/people/$(originalPersonId)
+        )
+        && get(
+          /databases/$(database)/documents/users/$(request.auth.uid)/people/$(originalPersonId)
+        ).data.sourceShareId == null;
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll([
+          'username',
+          'teamId',
+          'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'username',
+          'teamId',
+          'createdAt'
+        ])
+        && data.username is string
+        && data.username.size() > 0
+        && data.username.size() <= 64
+        && data.username.matches('^[a-z0-9._-]+$')
+        && data.teamId is string
+        && data.teamId.size() > 0
+        && data.teamId.size() <= 100
+        && data.createdAt is timestamp;
+    }
+
+    function isValidPerson(data, personId) {
+      return data.keys().hasAll([
+          'firstName',
+          'lastName',
+          'imageData',
+          'correctCount',
+          'wrongCount',
+          'learningLevel',
+          'lastReviewed',
+          'sourceShareId',
+          'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'firstName',
+          'lastName',
+          'imageData',
+          'correctCount',
+          'wrongCount',
+          'learningLevel',
+          'lastReviewed',
+          'sourceShareId',
+          'createdAt'
+        ])
+        && data.firstName is string
+        && data.firstName.size() > 0
+        && data.firstName.size() <= 80
+        && data.lastName is string
+        && data.lastName.size() > 0
+        && data.lastName.size() <= 80
+        && hasValidImageData(data)
+        && data.correctCount is int
+        && data.correctCount >= 0
+        && data.wrongCount is int
+        && data.wrongCount >= 0
+        && (data.learningLevel is int || data.learningLevel is float)
+        && data.learningLevel >= 0
+        && data.learningLevel <= 100
+        && (data.lastReviewed == null || data.lastReviewed is timestamp)
+        && (data.sourceShareId == null || data.sourceShareId is string)
+        && (
+          data.sourceShareId == null
+          || personId == 'shared_' + data.sourceShareId
+        )
+        && data.createdAt is timestamp;
+    }
+
+    function isValidSharedPerson(data, shareId) {
+      return data.keys().hasAll([
+          'firstName',
+          'lastName',
+          'imageData',
+          'sharedByUid',
+          'sharedByName',
+          'originalPersonId',
+          'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'firstName',
+          'lastName',
+          'imageData',
+          'sharedByUid',
+          'sharedByName',
+          'originalPersonId',
+          'createdAt'
+        ])
+        && data.firstName is string
+        && data.firstName.size() > 0
+        && data.firstName.size() <= 80
+        && data.lastName is string
+        && data.lastName.size() > 0
+        && data.lastName.size() <= 80
+        && hasValidImageData(data)
+        && data.sharedByUid is string
+        && data.sharedByName is string
+        && data.sharedByName.size() > 0
+        && data.sharedByName.size() <= 64
+        && data.originalPersonId is string
+        && data.originalPersonId.size() > 0
+        && shareId == data.sharedByUid + '_' + data.originalPersonId
+        && data.createdAt is timestamp;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwnUser(userId);
+      allow create: if isOwnUser(userId)
+        && isValidUserProfile(request.resource.data);
+      allow update: if isOwnUser(userId)
+        && isValidUserProfile(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isOwnUser(userId);
+
+      match /people/{personId} {
+        allow read: if isOwnUser(userId);
+        allow create: if isOwnUser(userId)
+          && isValidPerson(request.resource.data, personId);
+        allow update: if isOwnUser(userId)
+          && isValidPerson(request.resource.data, personId)
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.sourceShareId == resource.data.sourceShareId
+          && (
+            resource.data.sourceShareId == null
+            || (
+              request.resource.data.firstName == resource.data.firstName
+              && request.resource.data.lastName == resource.data.lastName
+              && request.resource.data.imageData == resource.data.imageData
+            )
+          );
+        allow delete: if isOwnUser(userId);
+      }
+    }
+
+    match /teams/{teamId}/sharedPeople/{shareId} {
+      allow read: if isTeamMember(teamId);
+      allow create: if isTeamMember(teamId)
+        && request.resource.data.sharedByUid == request.auth.uid
+        && ownsUnsharedOriginalPerson(request.resource.data.originalPersonId)
+        && isValidSharedPerson(request.resource.data, shareId);
+      allow update: if isTeamMember(teamId)
+        && resource.data.sharedByUid == request.auth.uid
+        && request.resource.data.sharedByUid == resource.data.sharedByUid
+        && request.resource.data.originalPersonId == resource.data.originalPersonId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && isValidSharedPerson(request.resource.data, shareId);
+      allow delete: if isTeamMember(teamId)
+        && resource.data.sharedByUid == request.auth.uid;
+    }
+  }
+}

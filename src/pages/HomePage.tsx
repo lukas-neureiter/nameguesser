@@ -7,12 +7,12 @@ import {
   Target,
   UsersRound,
 } from 'lucide-react'
-import type { Employee, LearningStatus } from '../types'
+import type { LearningStatus, PersonalPerson } from '../types'
 import { PageHeader } from '../components/PageHeader'
 import { PersonRow } from '../components/PersonRow'
 
 export type PersonSummary = {
-  employee: Employee
+  employee: PersonalPerson
   status: LearningStatus
   accuracy: number
   totalAnswers: number

@@ -23,8 +23,8 @@ export function PersonRow({
     <div className="person-row flex cursor-default items-center gap-3 py-3">
       <Avatar
         className="h-14 w-14 ring-2 ring-white"
+        imageData={employee.imageData}
         label={`Porträt von ${employee.firstName} ${employee.lastName}`}
-        spriteIndex={employee.spriteIndex}
       />
       <div className="min-w-0 flex-1">
         <p className="truncate text-[15px] font-extrabold text-[#102142]">
