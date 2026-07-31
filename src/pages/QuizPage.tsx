@@ -142,9 +142,9 @@ export function QuizPage({
         >
           <Avatar
             className="surface quiz-portrait mx-auto aspect-square w-full max-w-[285px]"
+            imageData={target.imageData}
             label="Foto der gesuchten Person"
             rounded="card"
-            spriteIndex={target.spriteIndex}
           />
           <h1 className="quiz-question-title mt-6 text-center text-[28px] leading-tight font-semibold tracking-[-0.015em] text-[#17233b]">
             Wer ist das?
@@ -207,8 +207,8 @@ export function QuizPage({
               >
                 <Avatar
                   className="aspect-square w-full"
+                  imageData={employee.imageData}
                   rounded="card"
-                  spriteIndex={employee.spriteIndex}
                 />
                 {answered && employee.id === target.id ? (
                   <span className="absolute top-3 right-3 grid h-8 w-8 place-items-center rounded-full bg-emerald-600 text-white shadow">
