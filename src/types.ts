@@ -15,7 +15,29 @@ export interface Employee {
   id: string
   firstName: string
   lastName: string
-  spriteIndex: number
+  imageData: string
+}
+
+export interface PersonalPerson extends Employee {
+  correctCount: number
+  wrongCount: number
+  learningLevel: number
+  lastReviewed: string | null
+  sourceShareId: string | null
+  createdAt: string | null
+}
+
+export interface SharedPerson extends Employee {
+  sharedByUid: string
+  sharedByName: string
+  originalPersonId: string
+  createdAt: string | null
+}
+
+export interface UserProfile {
+  username: string
+  teamId: string
+  createdAt: string | null
 }
 
 export type AnswerResult = 'correct' | 'wrong'
@@ -63,13 +85,4 @@ export interface SessionSummary {
   totalResponseMs: number
   personResults: SessionPersonResult[]
   newlyLearnedIds: string[]
-}
-
-export interface PersistedState {
-  version: 2
-  progressById: Record<string, PersonProgress>
-  disabledPersonIds: string[]
-  learningWindowIds: string[]
-  roundHistory: SessionSummary[]
-  lastConfig: RoundConfig
 }
